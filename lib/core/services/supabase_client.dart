@@ -21,6 +21,7 @@ class SupabaseClientWrapper {
   static const String tblAuditLogs = 'audit_logs';
   static const String tblNotifications = 'notifications';
   static const String tblProfessionalRegister = 'ndt_professional_register';
+  static const String tblProfessionalAssignments = 'ndt_professional_assignments';
 
   // ── RPC Function Name Constants ───────────────────────────
 
