@@ -1,0 +1,19 @@
+{
+  "mcpServers": {
+    "flutter-mcp": {
+      "command": "dart",
+      "args": ["run", "mcp_server/bin/server.dart", "."],
+      "description": "Flutter design MCP server — secure project operations with 4-layer UI validation, secret scanning, and static analysis",
+      "tools": [
+        "read_file",
+        "write_file",
+        "multi_edit",
+        "run_command",
+        "validate_ui_layer",
+        "scan_secrets",
+        "analyze_project",
+        "health_check"
+      ]
+    }
+  }
+}
