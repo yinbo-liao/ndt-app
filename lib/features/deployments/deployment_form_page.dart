@@ -41,6 +41,9 @@ class _DeploymentFormPageState extends ConsumerState<DeploymentFormPage> {
   String? _weatherConditions;
   bool _isSaving = false;
   List<_TeamMemberEntry> _teamMembers = [];
+  double _testLength = 0.0;
+  double _rejectLength = 0.0;
+  List<String> _equipment = [];
 
   bool get _isEditing => widget.existing != null;
 
@@ -59,6 +62,9 @@ class _DeploymentFormPageState extends ConsumerState<DeploymentFormPage> {
           .map((m) =>
               _TeamMemberEntry(name: m.name, role: m.role))
           .toList();
+      _testLength = e.testLength;
+      _rejectLength = e.rejectLength;
+      _equipment = List<String>.from(e.equipmentUsed);
     }
   }
 
@@ -110,6 +116,9 @@ class _DeploymentFormPageState extends ConsumerState<DeploymentFormPage> {
         teamDeployment: _teamDeployment,
         teamMembers: teamMembers,
         jobLocation: _jobLocation,
+        testLength: _testLength,
+        rejectLength: _rejectLength,
+        equipmentUsed: _equipment.where((e) => e.trim().isNotEmpty).toList(),
         dailyNotes: _dailyNotes,
         weatherConditions: _weatherConditions,
         createdBy: currentUser?.id,
@@ -266,6 +275,70 @@ class _DeploymentFormPageState extends ConsumerState<DeploymentFormPage> {
                 initialValue: _weatherConditions,
                 onChanged: (v) => _weatherConditions = v,
               ),
+              const SizedBox(height: 16),
+
+              // ── Test Metrics ──────────────────────────────
+              TextInputField(
+                label: 'Test Length (meters)',
+                initialValue: widget.existing?.testLength.toString() ?? '',
+                keyboardType: TextInputType.number,
+                onChanged: (v) {
+                  _testLength = double.tryParse(v) ?? 0.0;
+                },
+              ),
+              const SizedBox(height: 16),
+              TextInputField(
+                label: 'Reject Length (meters)',
+                initialValue: widget.existing?.rejectLength.toString() ?? '',
+                keyboardType: TextInputType.number,
+                onChanged: (v) {
+                  _rejectLength = double.tryParse(v) ?? 0.0;
+                },
+              ),
+              const SizedBox(height: 16),
+
+              // ── Equipment Used ────────────────────────────
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    'Equipment Used',
+                    style: Theme.of(context)
+                        .textTheme
+                        .titleSmall
+                        ?.copyWith(fontWeight: FontWeight.w600),
+                  ),
+                  TextButton.icon(
+                    onPressed: () =>
+                        setState(() => _equipment.add('')),
+                    icon: const Icon(Icons.add, size: 18),
+                    label: const Text('Add Equipment'),
+                  ),
+                ],
+              ),
+              ..._equipment.asMap().entries.map((entry) {
+                final idx = entry.key;
+                return Padding(
+                  padding: const EdgeInsets.only(bottom: 8),
+                  child: Row(
+                    children: [
+                      Expanded(
+                        child: TextInputField(
+                          label: 'Equipment ${idx + 1}',
+                          initialValue: _equipment[idx],
+                          onChanged: (v) => _equipment[idx] = v,
+                        ),
+                      ),
+                      IconButton(
+                        icon: const Icon(Icons.remove_circle,
+                            color: Colors.red, size: 20),
+                        onPressed: () => setState(
+                            () => _equipment.removeAt(idx)),
+                      ),
+                    ],
+                  ),
+                );
+              }),
               const SizedBox(height: 32),
               FilledButton(
                 onPressed: _isSaving ? null : _save,

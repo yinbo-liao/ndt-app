@@ -20,6 +20,7 @@ class SupabaseClientWrapper {
   static const String tblAssignments = 'ndt_team_assignments';
   static const String tblAuditLogs = 'audit_logs';
   static const String tblNotifications = 'notifications';
+  static const String tblProfessionalRegister = 'ndt_professional_register';
 
   // ── RPC Function Name Constants ───────────────────────────
 
@@ -30,6 +31,7 @@ class SupabaseClientWrapper {
   static const String rpcWeeklyTrend = 'weekly_deployment_trend';
   static const String rpcContractorSummary = 'contractor_register_summary';
   static const String rpcProjectStatusSummary = 'project_ndt_status_summary';
+  static const String rpcProfessionalSummary = 'professional_register_summary';
 
   // ── Convenience Methods ───────────────────────────────────
 

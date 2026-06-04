@@ -1,9 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import '../../core/constants/app_constants.dart';
+import '../../data/models/company_model.dart';
 import '../../data/models/project_model.dart';
 import '../../widgets/forms/text_input_field.dart';
 import '../../widgets/forms/date_picker_field.dart';
+import '../../widgets/forms/dropdown_field.dart';
+import '../companies/company_controller.dart';
 import 'project_controller.dart';
 
 /// Form page for creating/editing a project.
@@ -26,6 +30,10 @@ class _ProjectFormPageState extends ConsumerState<ProjectFormPage> {
   String? _clientName;
   DateTime? _startDate;
   DateTime? _endDate;
+  String? _classification;
+  String? _qaInchargeId;
+  String? _ndtCompanyId;
+  List<CompanyModel> _companies = [];
   bool _active = true;
   bool _isSaving = false;
 
@@ -42,7 +50,20 @@ class _ProjectFormPageState extends ConsumerState<ProjectFormPage> {
     _clientName = e?.clientName;
     _startDate = e?.startDate;
     _endDate = e?.endDate;
+    _classification = e?.classification;
+    _qaInchargeId = e?.qaInchargeId;
+    _ndtCompanyId = e?.ndtCompanyId;
     _active = e?.active ?? true;
+
+    WidgetsBinding.instance.addPostFrameCallback((_) => _loadCompanies());
+  }
+
+  void _loadCompanies() {
+    if (_companies.isNotEmpty) return;
+    final companiesAsync = ref.read(allCompaniesProvider);
+    companiesAsync.whenData((companies) {
+      if (mounted) setState(() => _companies = companies);
+    });
   }
 
   Future<void> _save() async {
@@ -61,6 +82,9 @@ class _ProjectFormPageState extends ConsumerState<ProjectFormPage> {
         location: _location,
         jobTrade: _jobTrade,
         clientName: _clientName,
+        classification: _classification,
+        qaInchargeId: _qaInchargeId,
+        ndtCompanyId: _ndtCompanyId,
         startDate: _startDate,
         endDate: _endDate,
         active: _active,
@@ -142,6 +166,37 @@ class _ProjectFormPageState extends ConsumerState<ProjectFormPage> {
                 onChanged: (v) => _clientName = v,
               ),
               const SizedBox(height: 16),
+
+              // ── Classification ────────────────────────────
+              DropdownField<String>(
+                label: 'Classification (optional)',
+                value: _classification,
+                hintText: 'Select classification',
+                items: AppConstants.classifications
+                    .map((c) => DropdownMenuItem(
+                          value: c,
+                          child: Text(c[0].toUpperCase() + c.substring(1)),
+                        ))
+                    .toList(),
+                onChanged: (v) => _classification = v,
+              ),
+              const SizedBox(height: 16),
+
+              // ── NDT Contractor ────────────────────────────
+              DropdownField<String>(
+                label: 'NDT Contractor (optional)',
+                value: _ndtCompanyId,
+                hintText: 'Select NDT company',
+                items: _companies
+                    .map((c) => DropdownMenuItem(
+                          value: c.id,
+                          child: Text(c.name),
+                        ))
+                    .toList(),
+                onChanged: (v) => _ndtCompanyId = v,
+              ),
+              const SizedBox(height: 16),
+
               DatePickerField(
                 label: 'Start Date (optional)',
                 value: _startDate,

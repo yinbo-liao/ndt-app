@@ -8,6 +8,9 @@ class ProjectModel extends Equatable {
   final String? jobTrade;
   final String location;
   final String? clientName;
+  final String? classification;
+  final String? qaInchargeId;
+  final String? ndtCompanyId;
   final DateTime? startDate;
   final DateTime? endDate;
   final bool active;
@@ -21,6 +24,9 @@ class ProjectModel extends Equatable {
     this.jobTrade,
     required this.location,
     this.clientName,
+    this.classification,
+    this.qaInchargeId,
+    this.ndtCompanyId,
     this.startDate,
     this.endDate,
     this.active = true,
@@ -36,6 +42,9 @@ class ProjectModel extends Equatable {
       jobTrade: json['job_trade'] as String?,
       location: json['location'] as String,
       clientName: json['client_name'] as String?,
+      classification: json['classification'] as String?,
+      qaInchargeId: json['qa_incharge_id'] as String?,
+      ndtCompanyId: json['ndt_company_id'] as String?,
       startDate: json['start_date'] != null
           ? DateTime.tryParse(json['start_date'] as String)
           : null,
@@ -60,6 +69,9 @@ class ProjectModel extends Equatable {
       if (jobTrade != null) 'job_trade': jobTrade,
       'location': location,
       if (clientName != null) 'client_name': clientName,
+      if (classification != null) 'classification': classification,
+      if (qaInchargeId != null) 'qa_incharge_id': qaInchargeId,
+      if (ndtCompanyId != null) 'ndt_company_id': ndtCompanyId,
       if (startDate != null) 'start_date': startDate!.toIso8601String().split('T')[0],
       if (endDate != null) 'end_date': endDate!.toIso8601String().split('T')[0],
       'active': active,
@@ -75,6 +87,9 @@ class ProjectModel extends Equatable {
     String? jobTrade,
     String? location,
     String? clientName,
+    String? classification,
+    String? qaInchargeId,
+    String? ndtCompanyId,
     DateTime? startDate,
     DateTime? endDate,
     bool? active,
@@ -88,6 +103,9 @@ class ProjectModel extends Equatable {
       jobTrade: jobTrade ?? this.jobTrade,
       location: location ?? this.location,
       clientName: clientName ?? this.clientName,
+      classification: classification ?? this.classification,
+      qaInchargeId: qaInchargeId ?? this.qaInchargeId,
+      ndtCompanyId: ndtCompanyId ?? this.ndtCompanyId,
       startDate: startDate ?? this.startDate,
       endDate: endDate ?? this.endDate,
       active: active ?? this.active,
@@ -104,6 +122,9 @@ class ProjectModel extends Equatable {
         jobTrade,
         location,
         clientName,
+        classification,
+        qaInchargeId,
+        ndtCompanyId,
         startDate,
         endDate,
         active,

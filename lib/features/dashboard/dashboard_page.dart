@@ -224,6 +224,7 @@ class _DashboardPageState extends ConsumerState<DashboardPage> {
       items.addAll([
         _NavItem(Icons.assignment_turned_in, 'NDT RFI Review', 'Manage NDT planning requests', '/planning'),
         _NavItem(Icons.groups, 'NDT Teams Update', 'Contractor register & team assignments', '/contractors'),
+        _NavItem(Icons.person_search, 'NDT Professionals', 'Manage NDT professional register', '/professionals'),
         _NavItem(Icons.engineering, 'NDT Deployment Review', 'View and manage team deployments', '/deployments'),
         _NavItem(Icons.business, 'Project Management', 'Create and manage projects', '/projects'),
         _NavItem(Icons.manage_accounts, 'User Update', 'Manage users and access roles', '/users'),
@@ -232,13 +233,15 @@ class _DashboardPageState extends ConsumerState<DashboardPage> {
     } else if (role == AppConstants.roleNdtCompany) {
       items.addAll([
         _NavItem(Icons.groups, 'NDT Teams Update', 'Contractor register & team assignments', '/contractors'),
+        _NavItem(Icons.person_search, 'NDT Professionals', 'Manage NDT professional register', '/professionals'),
         _NavItem(Icons.engineering, 'NDT Deployment Review', 'View and update team deployments', '/deployments'),
+        _NavItem(Icons.assignment, 'NDT RFI Register', 'View and manage NDT RFIs', '/planning'),
         _NavItem(Icons.assessment, 'Reports', 'Daily summaries and performance charts', '/reports'),
       ]);
     } else {
       items.addAll([
         _NavItem(Icons.engineering, 'NDT Deployment Review', 'View my team deployments', '/deployments'),
-        _NavItem(Icons.assignment, 'My Assignments', 'View my assigned projects', '/planning'),
+        _NavItem(Icons.assignment, 'My Assignments', 'View my assigned projects', '/my-assignments'),
       ]);
     }
     return items.map((item) => _navCard(context, item)).toList();

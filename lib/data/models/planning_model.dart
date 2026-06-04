@@ -13,6 +13,14 @@ class PlanningModel extends Equatable {
   final double testLength;
   final double rejectLength;
   final String priority; // 'low','normal','high','urgent'
+  final String? typeOfTesting; // UT, MT, PT, RT, VT
+  final String? discipline; // 'structure','piping','mechanical','electrical'
+  final String? jobDescription;
+  final String? siteContact;
+  final String? subcontractor;
+  final String? jobLocation;
+  final String teamDeployStatus; // 'not_deployed','deployed','in_progress','completed'
+  final String acceptStatus; // 'accept','reject','pending'
   final DateTime? createdAt;
   final DateTime? updatedAt;
 
@@ -28,6 +36,14 @@ class PlanningModel extends Equatable {
     this.testLength = 0.0,
     this.rejectLength = 0.0,
     this.priority = 'normal',
+    this.typeOfTesting,
+    this.discipline,
+    this.jobDescription,
+    this.siteContact,
+    this.subcontractor,
+    this.jobLocation,
+    this.teamDeployStatus = 'not_deployed',
+    this.acceptStatus = 'pending',
     this.createdAt,
     this.updatedAt,
   });
@@ -51,6 +67,15 @@ class PlanningModel extends Equatable {
       testLength: (json['test_length'] as num?)?.toDouble() ?? 0.0,
       rejectLength: (json['reject_length'] as num?)?.toDouble() ?? 0.0,
       priority: json['priority'] as String? ?? 'normal',
+      typeOfTesting: json['type_of_testing'] as String?,
+      discipline: json['discipline'] as String?,
+      jobDescription: json['job_description'] as String?,
+      siteContact: json['site_contact'] as String?,
+      subcontractor: json['subcontractor'] as String?,
+      jobLocation: json['job_location'] as String?,
+      teamDeployStatus:
+          json['team_deploy_status'] as String? ?? 'not_deployed',
+      acceptStatus: json['accept_status'] as String? ?? 'pending',
       createdAt: json['created_at'] != null
           ? DateTime.tryParse(json['created_at'] as String)
           : null,
@@ -76,6 +101,14 @@ class PlanningModel extends Equatable {
       'test_length': testLength,
       'reject_length': rejectLength,
       'priority': priority,
+      if (typeOfTesting != null) 'type_of_testing': typeOfTesting,
+      if (discipline != null) 'discipline': discipline,
+      if (jobDescription != null) 'job_description': jobDescription,
+      if (siteContact != null) 'site_contact': siteContact,
+      if (subcontractor != null) 'subcontractor': subcontractor,
+      if (jobLocation != null) 'job_location': jobLocation,
+      'team_deploy_status': teamDeployStatus,
+      'accept_status': acceptStatus,
       if (createdAt != null) 'created_at': createdAt!.toUtc().toIso8601String(),
       if (updatedAt != null) 'updated_at': updatedAt!.toUtc().toIso8601String(),
     };
@@ -93,6 +126,14 @@ class PlanningModel extends Equatable {
     double? testLength,
     double? rejectLength,
     String? priority,
+    String? typeOfTesting,
+    String? discipline,
+    String? jobDescription,
+    String? siteContact,
+    String? subcontractor,
+    String? jobLocation,
+    String? teamDeployStatus,
+    String? acceptStatus,
     DateTime? createdAt,
     DateTime? updatedAt,
   }) {
@@ -108,6 +149,14 @@ class PlanningModel extends Equatable {
       testLength: testLength ?? this.testLength,
       rejectLength: rejectLength ?? this.rejectLength,
       priority: priority ?? this.priority,
+      typeOfTesting: typeOfTesting ?? this.typeOfTesting,
+      discipline: discipline ?? this.discipline,
+      jobDescription: jobDescription ?? this.jobDescription,
+      siteContact: siteContact ?? this.siteContact,
+      subcontractor: subcontractor ?? this.subcontractor,
+      jobLocation: jobLocation ?? this.jobLocation,
+      teamDeployStatus: teamDeployStatus ?? this.teamDeployStatus,
+      acceptStatus: acceptStatus ?? this.acceptStatus,
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
     );
@@ -126,6 +175,14 @@ class PlanningModel extends Equatable {
         testLength,
         rejectLength,
         priority,
+        typeOfTesting,
+        discipline,
+        jobDescription,
+        siteContact,
+        subcontractor,
+        jobLocation,
+        teamDeployStatus,
+        acceptStatus,
         createdAt,
         updatedAt,
       ];

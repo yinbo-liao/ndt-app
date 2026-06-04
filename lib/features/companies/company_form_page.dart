@@ -20,6 +20,8 @@ class _CompanyFormPageState extends ConsumerState<CompanyFormPage> {
   String? _registrationNo;
   String? _contactEmail;
   String? _contactPhone;
+  String? _address;
+  String? _supervisor;
   bool _isSaving = false;
 
   bool get _isEditing => widget.existing != null;
@@ -32,6 +34,8 @@ class _CompanyFormPageState extends ConsumerState<CompanyFormPage> {
     _registrationNo = e?.registrationNo;
     _contactEmail = e?.contactEmail;
     _contactPhone = e?.contactPhone;
+    _address = e?.address;
+    _supervisor = e?.supervisor;
   }
 
   Future<void> _save() async {
@@ -47,6 +51,8 @@ class _CompanyFormPageState extends ConsumerState<CompanyFormPage> {
         registrationNo: _registrationNo,
         contactEmail: _contactEmail,
         contactPhone: _contactPhone,
+        address: _address?.trim(),
+        supervisor: _supervisor?.trim(),
       );
 
       if (_isEditing) {
@@ -91,6 +97,10 @@ class _CompanyFormPageState extends ConsumerState<CompanyFormPage> {
               TextInputField(label: 'Contact Email (optional)', initialValue: _contactEmail, keyboardType: TextInputType.emailAddress, onChanged: (v) => _contactEmail = v),
               const SizedBox(height: 16),
               TextInputField(label: 'Contact Phone (optional)', initialValue: _contactPhone, keyboardType: TextInputType.phone, onChanged: (v) => _contactPhone = v),
+              const SizedBox(height: 16),
+              TextInputField(label: 'Address (optional)', initialValue: _address, maxLines: 2, onChanged: (v) => _address = v),
+              const SizedBox(height: 16),
+              TextInputField(label: 'Supervisor (optional)', initialValue: _supervisor, onChanged: (v) => _supervisor = v),
               const SizedBox(height: 32),
               FilledButton(
                 onPressed: _isSaving ? null : _save,

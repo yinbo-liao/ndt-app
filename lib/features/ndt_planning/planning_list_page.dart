@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import '../../data/models/planning_model.dart';
 import '../../core/theme/color_palette.dart';
 import '../../core/utils/extensions.dart';
@@ -23,9 +24,9 @@ class PlanningListPage extends ConsumerWidget {
         title: const Text('NDT Planning'),
       ),
       floatingActionButton: FloatingActionButton(
-        onPressed: () {
-          // Navigate to create planning form
-        },
+        onPressed: () => context.push(
+          '/planning/create?projectId=$projectId',
+        ),
         child: const Icon(Icons.add),
       ),
       body: planningAsync.when(
@@ -110,10 +111,20 @@ class _PlanningListTile extends StatelessWidget {
               ),
           ],
         ),
-        trailing: const Icon(Icons.chevron_right),
-        onTap: () {
-          // Navigate to detail
-        },
+        trailing: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            IconButton(
+              icon: const Icon(Icons.edit, size: 18),
+              tooltip: 'Edit RFI',
+              onPressed: () => context.push(
+                '/planning/${planning.id}/edit?projectId=${planning.projectId}',
+              ),
+            ),
+            const Icon(Icons.chevron_right),
+          ],
+        ),
+        onTap: () => context.push('/planning/${planning.id}'),
       ),
     );
   }

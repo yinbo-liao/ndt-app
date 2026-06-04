@@ -7,6 +7,8 @@ class CompanyModel extends Equatable {
   final String? registrationNo;
   final String? contactEmail;
   final String? contactPhone;
+  final String? address;
+  final String? supervisor;
   final bool active;
   final DateTime? createdAt;
   final DateTime? updatedAt;
@@ -17,6 +19,8 @@ class CompanyModel extends Equatable {
     this.registrationNo,
     this.contactEmail,
     this.contactPhone,
+    this.address,
+    this.supervisor,
     this.active = true,
     this.createdAt,
     this.updatedAt,
@@ -29,6 +33,8 @@ class CompanyModel extends Equatable {
       registrationNo: json['registration_no'] as String?,
       contactEmail: json['contact_email'] as String?,
       contactPhone: json['contact_phone'] as String?,
+      address: json['address'] as String?,
+      supervisor: json['supervisor'] as String?,
       active: json['active'] as bool? ?? true,
       createdAt: json['created_at'] != null
           ? DateTime.tryParse(json['created_at'] as String)
@@ -46,6 +52,8 @@ class CompanyModel extends Equatable {
       if (registrationNo != null) 'registration_no': registrationNo,
       if (contactEmail != null) 'contact_email': contactEmail,
       if (contactPhone != null) 'contact_phone': contactPhone,
+      if (address != null) 'address': address,
+      if (supervisor != null) 'supervisor': supervisor,
       'active': active,
       if (createdAt != null) 'created_at': createdAt!.toUtc().toIso8601String(),
       if (updatedAt != null) 'updated_at': updatedAt!.toUtc().toIso8601String(),
@@ -58,6 +66,8 @@ class CompanyModel extends Equatable {
     String? registrationNo,
     String? contactEmail,
     String? contactPhone,
+    String? address,
+    String? supervisor,
     bool? active,
     DateTime? createdAt,
     DateTime? updatedAt,
@@ -68,6 +78,8 @@ class CompanyModel extends Equatable {
       registrationNo: registrationNo ?? this.registrationNo,
       contactEmail: contactEmail ?? this.contactEmail,
       contactPhone: contactPhone ?? this.contactPhone,
+      address: address ?? this.address,
+      supervisor: supervisor ?? this.supervisor,
       active: active ?? this.active,
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
@@ -81,6 +93,8 @@ class CompanyModel extends Equatable {
         registrationNo,
         contactEmail,
         contactPhone,
+        address,
+        supervisor,
         active,
         createdAt,
         updatedAt,
