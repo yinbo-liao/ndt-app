@@ -28,10 +28,14 @@ class DailySummaryPage extends ConsumerStatefulWidget {
 
 class _DailySummaryPageState extends ConsumerState<DailySummaryPage> {
   List<ProjectModel> _projects = [];
+  String? _selectedProjectId;
+  bool _loadingProjects = true;
 
   @override
   void initState() {
     super.initState();
+    _selectedProjectId =
+        widget.projectId.isNotEmpty ? widget.projectId : null;
     _loadProjects();
   }
 
@@ -39,15 +43,28 @@ class _DailySummaryPageState extends ConsumerState<DailySummaryPage> {
     try {
       final repo = ProjectRepository();
       final projects = await repo.getAll();
-      if (mounted) setState(() => _projects = projects);
-    } catch (_) {}
+      if (mounted) {
+        setState(() {
+          _projects = projects;
+          _loadingProjects = false;
+          // Auto-select first project if none is set
+          if (_selectedProjectId == null && projects.isNotEmpty) {
+            _selectedProjectId = projects.first.id;
+          }
+        });
+      }
+    } catch (_) {
+      if (mounted) setState(() => _loadingProjects = false);
+    }
   }
 
   @override
   Widget build(BuildContext context) {
     final selectedDate = ref.watch(selectedDateProvider);
-    final summaryAsync = ref.watch(dailyProjectSummaryProvider(widget.projectId));
     final isAdmin = ref.watch(isAdminProvider);
+    final projectId = _selectedProjectId ?? '';
+    final summaryAsync =
+        projectId.isNotEmpty ? ref.watch(dailyProjectSummaryProvider(projectId)) : null;
 
     return Scaffold(
       appBar: AppBar(
@@ -76,95 +93,146 @@ class _DailySummaryPageState extends ConsumerState<DailySummaryPage> {
               child: const Icon(Icons.add),
             )
           : null,
-      body: summaryAsync.when(
-        data: (summary) {
-          return SingleChildScrollView(
-            padding: const EdgeInsets.all(16),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                // Project selector
-                if (_projects.isNotEmpty) ...[
-                  DropdownButtonFormField<String>(
-                    initialValue: widget.projectId.isNotEmpty ? widget.projectId : null,
-                    decoration: const InputDecoration(
-                      labelText: 'Select Project',
-                      prefixIcon: Icon(Icons.business),
-                      border: OutlineInputBorder(),
-                    ),
-                    items: _projects
-                        .map((p) => DropdownMenuItem(value: p.id, child: Text(p.projectName)))
-                        .toList(),
-                    onChanged: (v) {
-                      if (v != null) {
-                        context.go('/reports/daily?projectId=$v&projectName=${Uri.encodeComponent(_projects.firstWhere((p) => p.id == v).projectName)}');
-                      }
-                    },
+      body: _loadingProjects
+          ? const LoadingIndicator(message: 'Loading projects...')
+          : _projects.isEmpty
+              ? Center(
+                  child: Padding(
+                    padding: const EdgeInsets.all(40),
+                    child: Text('No projects found. Create one first.',
+                        style: TextStyle(color: Colors.grey[500])),
                   ),
-                  const SizedBox(height: 16),
-                ],
-                Text(
-                  DateFormat('EEEE, MMM dd, yyyy').format(selectedDate),
-                  style: Theme.of(context).textTheme.headlineSmall,
-                ),
-                if (summary != null) ...[
-                  const SizedBox(height: 8),
-                  Text(summary.projectName,
-                      style: Theme.of(context).textTheme.titleMedium?.copyWith(color: Colors.grey[600])),
-                  const SizedBox(height: 24),
-                  GridView.count(
-                    shrinkWrap: true,
-                    physics: const NeverScrollableScrollPhysics(),
-                    crossAxisCount: 2,
-                    childAspectRatio: 1.4,
-                    crossAxisSpacing: 12,
-                    mainAxisSpacing: 12,
-                    children: [
-                      SummaryCard(title: 'Total Teams', value: summary.totalTeams.toString(), icon: Icons.groups, color: Colors.blue),
-                      SummaryCard(title: 'Personnel', value: summary.totalPersonnel.toString(), icon: Icons.people, color: Colors.green),
-                      SummaryCard(title: 'Completed', value: summary.completedTests.toString(), icon: Icons.check_circle, color: Colors.teal),
-                      SummaryCard(title: 'In Progress', value: summary.inProgressTests.toString(), icon: Icons.pending, color: Colors.orange),
-                      SummaryCard(title: 'Rejected', value: summary.rejectedTests.toString(), icon: Icons.cancel, color: Colors.red),
-                      SummaryCard(title: 'Test Length', value: '${summary.totalTestLength.toStringAsFixed(1)}m', icon: Icons.straighten, color: Colors.purple),
-                    ],
-                  ),
-                  const SizedBox(height: 24),
-                  ShiftSummaryView(summary: summary),
-                  const SizedBox(height: 24),
-                  if (summary.locations.isNotEmpty)
-                    Card(
-                      child: Padding(
-                        padding: const EdgeInsets.all(16),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text('Job Locations', style: Theme.of(context).textTheme.titleLarge),
-                            const SizedBox(height: 12),
-                            Wrap(
-                              spacing: 8, runSpacing: 8,
-                              children: summary.locations.map((l) => Chip(label: Text(l), avatar: const Icon(Icons.location_on, size: 18))).toList(),
-                            ),
-                          ],
-                        ),
+                )
+              : summaryAsync == null
+                  ? _buildProjectSelector()
+                  : summaryAsync.when(
+                      data: (summary) => _buildContent(
+                          context, summary, selectedDate, isAdmin),
+                      loading: () => const LoadingIndicator(
+                          message: 'Loading summary...'),
+                      error: (error, st) => AppErrorWidget(
+                        message: 'Failed to load: $error',
+                        onRetry: () => ref.invalidate(
+                            dailyProjectSummaryProvider(projectId)),
                       ),
                     ),
-                ] else
-                  Center(
-                    child: Padding(
-                      padding: const EdgeInsets.all(40),
-                      child: Text('No data for ${DateFormat('MMM dd, yyyy').format(selectedDate)}',
-                          style: TextStyle(color: Colors.grey[500])),
-                    ),
-                  ),
+    );
+  }
+
+  Widget _buildProjectSelector() {
+    return SingleChildScrollView(
+      padding: const EdgeInsets.all(16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text('Select a Project',
+              style: Theme.of(context).textTheme.headlineSmall),
+          const SizedBox(height: 8),
+          Text('Choose a project to view its daily deployment summary.',
+              style: TextStyle(color: Colors.grey[600])),
+          const SizedBox(height: 16),
+          DropdownButtonFormField<String>(
+            key: ValueKey(_selectedProjectId),
+            initialValue: _selectedProjectId,
+            decoration: const InputDecoration(
+              labelText: 'Project',
+              prefixIcon: Icon(Icons.business),
+              border: OutlineInputBorder(),
+            ),
+            items: _projects
+                .map((p) => DropdownMenuItem(
+                    value: p.id, child: Text(p.projectName)))
+                .toList(),
+            onChanged: (v) {
+              if (v != null) setState(() => _selectedProjectId = v);
+            },
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildContent(BuildContext context, dynamic summary,
+      DateTime selectedDate, bool isAdmin) {
+    return SingleChildScrollView(
+      padding: const EdgeInsets.all(16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Project selector
+          if (_projects.isNotEmpty) ...[
+            DropdownButtonFormField<String>(
+              key: ValueKey(_selectedProjectId),
+              initialValue: _selectedProjectId,
+              decoration: const InputDecoration(
+                labelText: 'Select Project',
+                prefixIcon: Icon(Icons.business),
+                border: OutlineInputBorder(),
+              ),
+              items: _projects
+                  .map((p) => DropdownMenuItem(
+                      value: p.id, child: Text(p.projectName)))
+                  .toList(),
+              onChanged: (v) {
+                if (v != null) setState(() => _selectedProjectId = v);
+              },
+            ),
+            const SizedBox(height: 16),
+          ],
+          Text(
+            DateFormat('EEEE, MMM dd, yyyy').format(selectedDate),
+            style: Theme.of(context).textTheme.headlineSmall,
+          ),
+          if (summary != null) ...[
+            const SizedBox(height: 8),
+            Text(summary.projectName,
+                style: Theme.of(context).textTheme.titleMedium?.copyWith(color: Colors.grey[600])),
+            const SizedBox(height: 24),
+            GridView.count(
+              shrinkWrap: true,
+              physics: const NeverScrollableScrollPhysics(),
+              crossAxisCount: 2,
+              childAspectRatio: 1.4,
+              crossAxisSpacing: 12,
+              mainAxisSpacing: 12,
+              children: [
+                SummaryCard(title: 'Total Teams', value: summary.totalTeams.toString(), icon: Icons.groups, color: Colors.blue),
+                SummaryCard(title: 'Personnel', value: summary.totalPersonnel.toString(), icon: Icons.people, color: Colors.green),
+                SummaryCard(title: 'Completed', value: summary.completedTests.toString(), icon: Icons.check_circle, color: Colors.teal),
+                SummaryCard(title: 'In Progress', value: summary.inProgressTests.toString(), icon: Icons.pending, color: Colors.orange),
+                SummaryCard(title: 'Rejected', value: summary.rejectedTests.toString(), icon: Icons.cancel, color: Colors.red),
+                SummaryCard(title: 'Test Length', value: '${summary.totalTestLength.toStringAsFixed(1)}m', icon: Icons.straighten, color: Colors.purple),
               ],
             ),
-          );
-        },
-        loading: () => const LoadingIndicator(message: 'Loading summary...'),
-        error: (error, st) => AppErrorWidget(
-          message: 'Failed to load summary: $error',
-          onRetry: () => ref.invalidate(dailyProjectSummaryProvider(widget.projectId)),
-        ),
+            const SizedBox(height: 24),
+            ShiftSummaryView(summary: summary),
+            const SizedBox(height: 24),
+            if (summary.locations.isNotEmpty)
+              Card(
+                child: Padding(
+                  padding: const EdgeInsets.all(16),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text('Job Locations', style: Theme.of(context).textTheme.titleLarge),
+                      const SizedBox(height: 12),
+                      Wrap(
+                        spacing: 8, runSpacing: 8,
+                        children: summary.locations.map((l) => Chip(label: Text(l), avatar: const Icon(Icons.location_on, size: 18))).toList(),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+          ] else
+            Center(
+              child: Padding(
+                padding: const EdgeInsets.all(40),
+                child: Text('No data for ${DateFormat('MMM dd, yyyy').format(selectedDate)}',
+                    style: TextStyle(color: Colors.grey[500])),
+              ),
+            ),
+        ],
       ),
     );
   }
