@@ -2,12 +2,17 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../data/models/assignment_model.dart';
 import '../../data/models/user_model.dart';
+import '../../data/repositories/assignment_repository.dart';
 import '../../core/services/supabase_client.dart';
 import '../../providers/auth_provider.dart';
 
 /// Provides a dedicated SupabaseClient for team-related queries.
 final teamSupabaseProvider = Provider<SupabaseClient>(
     (ref) => SupabaseClientWrapper.instance);
+
+/// Provides the [AssignmentRepository] singleton.
+final assignmentRepoProvider =
+    Provider<AssignmentRepository>((ref) => AssignmentRepository());
 
 /// Team members — fetches all users for the current company.
 final teamMembersProvider =
@@ -32,17 +37,8 @@ final teamAssignmentsProvider =
   final companyId = ref.watch(currentUserCompanyIdProvider);
   if (companyId == null) return [];
 
-  final client = ref.watch(teamSupabaseProvider);
-  final response = await client
-      .from(SupabaseClientWrapper.tblAssignments)
-      .select('*, users!user_id(full_name, email)')
-      .eq('ndt_company_id', companyId)
-      .eq('status', 'active')
-      .order('created_at', ascending: false);
-
-  return SupabaseClientWrapper.safeList(response)
-      .map((json) => AssignmentModel.fromJson(json))
-      .toList();
+  final repo = ref.watch(assignmentRepoProvider);
+  return repo.getByCompany(companyId);
 });
 
 /// Fetch projects the current team member is assigned to.
@@ -51,15 +47,6 @@ final myAssignedProjectsProvider =
   final userId = ref.watch(currentUserProvider)?.id;
   if (userId == null) return [];
 
-  final client = ref.watch(teamSupabaseProvider);
-  final response = await client
-      .from(SupabaseClientWrapper.tblAssignments)
-      .select('*, projects!project_id(project_name, project_code)')
-      .eq('user_id', userId)
-      .eq('status', 'active')
-      .order('created_at', ascending: false);
-
-  return SupabaseClientWrapper.safeList(response)
-      .map((json) => AssignmentModel.fromJson(json))
-      .toList();
+  final repo = ref.watch(assignmentRepoProvider);
+  return repo.getByUser(userId);
 });

@@ -27,24 +27,22 @@ class NotificationListPage extends ConsumerWidget {
               itemCount: notifs.length,
               itemBuilder: (_, i) {
                 final n = notifs[i];
-                final read = n['read'] as bool? ?? false;
-                final type = n['type'] as String? ?? '';
                 return Card(
                   margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-                  color: read ? null : Colors.blue.withAlpha(12),
+                  color: n.read ? null : Colors.blue.withAlpha(12),
                   child: ListTile(
                     leading: Icon(
-                      type == 'cert_expiry' ? Icons.warning_amber :
-                      type == 'approval_needed' ? Icons.verified :
-                      type == 'rfi_dispatched' ? Icons.send :
+                      n.type == 'cert_expiry' ? Icons.warning_amber :
+                      n.type == 'approval_needed' ? Icons.verified :
+                      n.type == 'rfi_dispatched' ? Icons.send :
                       Icons.info_outline,
-                      color: read ? Colors.grey : const Color(0xFF1A56DB),
+                      color: n.read ? Colors.grey : const Color(0xFF1A56DB),
                     ),
-                    title: Text(n['title'] as String? ?? '',
-                        style: TextStyle(fontWeight: read ? FontWeight.normal : FontWeight.bold)),
-                    subtitle: Text(n['body'] as String? ?? '',
+                    title: Text(n.title,
+                        style: TextStyle(fontWeight: n.read ? FontWeight.normal : FontWeight.bold)),
+                    subtitle: Text(n.body ?? '',
                         maxLines: 2, overflow: TextOverflow.ellipsis),
-                    trailing: read ? null : Container(
+                    trailing: n.read ? null : Container(
                       width: 8, height: 8,
                       decoration: const BoxDecoration(color: Color(0xFF1A56DB), shape: BoxShape.circle),
                     ),

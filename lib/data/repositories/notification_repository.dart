@@ -1,4 +1,5 @@
 import 'package:supabase_flutter/supabase_flutter.dart';
+import '../models/notification_model.dart';
 import '../../core/services/supabase_client.dart';
 
 /// Repository for in-app notifications.
@@ -9,7 +10,7 @@ class NotificationRepository {
       : _client = client ?? SupabaseClientWrapper.instance;
 
   /// Get notifications for the current user.
-  Future<List<Map<String, dynamic>>> getForUser(String userId) async {
+  Future<List<NotificationModel>> getForUser(String userId) async {
     final response = await _client
         .from(SupabaseClientWrapper.tblNotifications)
         .select()
@@ -17,7 +18,9 @@ class NotificationRepository {
         .order('created_at', ascending: false)
         .limit(50);
 
-    return SupabaseClientWrapper.safeList(response);
+    return SupabaseClientWrapper.safeList(response)
+        .map((json) => NotificationModel.fromJson(json))
+        .toList();
   }
 
   /// Mark a notification as read.

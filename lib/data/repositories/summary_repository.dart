@@ -88,6 +88,19 @@ class SummaryRepository {
     return SupabaseClientWrapper.safeSingle(response);
   }
 
+  // ── Professional Register Summary ──────────────────────────
+
+  Future<Map<String, dynamic>?> getProfessionalSummary({
+    required String companyId,
+  }) async {
+    final response = await _client.rpc(
+      SupabaseClientWrapper.rpcProfessionalSummary,
+      params: {'p_company_id': companyId},
+    );
+
+    return SupabaseClientWrapper.safeSingle(response);
+  }
+
   // ── Project NDT Status Summary ────────────────────────────
 
   Future<List<Map<String, dynamic>>> getProjectStatusSummary({

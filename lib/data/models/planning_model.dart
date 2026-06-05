@@ -21,6 +21,7 @@ class PlanningModel extends Equatable {
   final String? jobLocation;
   final String teamDeployStatus; // 'not_deployed','deployed','in_progress','completed'
   final String acceptStatus; // 'accept','reject','pending'
+  final bool rfiSentToTeam; // RFI dispatched to team flag (migration 002)
   final DateTime? createdAt;
   final DateTime? updatedAt;
 
@@ -44,6 +45,7 @@ class PlanningModel extends Equatable {
     this.jobLocation,
     this.teamDeployStatus = 'not_deployed',
     this.acceptStatus = 'pending',
+    this.rfiSentToTeam = false,
     this.createdAt,
     this.updatedAt,
   });
@@ -76,6 +78,7 @@ class PlanningModel extends Equatable {
       teamDeployStatus:
           json['team_deploy_status'] as String? ?? 'not_deployed',
       acceptStatus: json['accept_status'] as String? ?? 'pending',
+      rfiSentToTeam: json['rfi_sent_to_team'] as bool? ?? false,
       createdAt: json['created_at'] != null
           ? DateTime.tryParse(json['created_at'] as String)
           : null,
@@ -109,6 +112,7 @@ class PlanningModel extends Equatable {
       if (jobLocation != null) 'job_location': jobLocation,
       'team_deploy_status': teamDeployStatus,
       'accept_status': acceptStatus,
+      'rfi_sent_to_team': rfiSentToTeam,
       if (createdAt != null) 'created_at': createdAt!.toUtc().toIso8601String(),
       if (updatedAt != null) 'updated_at': updatedAt!.toUtc().toIso8601String(),
     };
@@ -134,6 +138,7 @@ class PlanningModel extends Equatable {
     String? jobLocation,
     String? teamDeployStatus,
     String? acceptStatus,
+    bool? rfiSentToTeam,
     DateTime? createdAt,
     DateTime? updatedAt,
   }) {
@@ -157,6 +162,7 @@ class PlanningModel extends Equatable {
       jobLocation: jobLocation ?? this.jobLocation,
       teamDeployStatus: teamDeployStatus ?? this.teamDeployStatus,
       acceptStatus: acceptStatus ?? this.acceptStatus,
+      rfiSentToTeam: rfiSentToTeam ?? this.rfiSentToTeam,
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
     );
@@ -183,6 +189,7 @@ class PlanningModel extends Equatable {
         jobLocation,
         teamDeployStatus,
         acceptStatus,
+        rfiSentToTeam,
         createdAt,
         updatedAt,
       ];

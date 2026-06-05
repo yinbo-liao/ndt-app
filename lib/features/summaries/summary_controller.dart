@@ -72,3 +72,10 @@ final projectStatusSummaryProvider = FutureProvider.autoDispose
   final repository = ref.watch(unifiedSummaryRepoProvider);
   return repository.getProjectStatusSummary(companyId: companyId);
 });
+
+/// Professional register summary for a company.
+final professionalSummaryProvider = FutureProvider.autoDispose
+    .family<Map<String, dynamic>?, String>((ref, companyId) async {
+  final repository = ref.watch(unifiedSummaryRepoProvider);
+  return repository.getProfessionalSummary(companyId: companyId);
+});

@@ -43,6 +43,13 @@ class ReportsHubPage extends ConsumerWidget {
             subtitle: 'Weekly deployment trend analysis',
             onTap: () => context.push('/reports/charts'),
           ),
+          _reportTile(
+            context,
+            icon: Icons.people,
+            title: 'Professional Summary',
+            subtitle: 'NDT professional register compliance overview',
+            onTap: () => context.push('/reports/professional'),
+          ),
         ],
       ),
     );

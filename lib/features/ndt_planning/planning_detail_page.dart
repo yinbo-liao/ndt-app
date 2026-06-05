@@ -164,6 +164,7 @@ class _DetailContent extends StatelessWidget {
                   if (planning.plannedEndDate != null)
                     _row('Planned End',
                         planning.plannedEndDate!.toIso8601String().split('T')[0]),
+                  _row('RFI Dispatched', planning.rfiSentToTeam ? 'Yes  Sent to team' : 'No  Not yet dispatched'),
                 ],
               ),
             ),

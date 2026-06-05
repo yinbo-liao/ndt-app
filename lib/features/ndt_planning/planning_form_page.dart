@@ -33,6 +33,7 @@ class _PlanningFormPageState extends ConsumerState<PlanningFormPage> {
   String? _selectedCompanyId;
   DateTime? _rfiDate;
   bool _isSaving = false;
+  bool _rfiSentToTeam = false;
   List<CompanyModel> _companies = [];
 
   bool get _isEditing => widget.existing != null;
@@ -48,6 +49,7 @@ class _PlanningFormPageState extends ConsumerState<PlanningFormPage> {
       _priority = e.priority;
       _selectedCompanyId = e.ndtCompanyId;
       _rfiDate = e.ndtRfiDate;
+      _rfiSentToTeam = e.rfiSentToTeam;
     }
     // Load companies after first frame to avoid build-during-init issues.
     WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -90,6 +92,7 @@ class _PlanningFormPageState extends ConsumerState<PlanningFormPage> {
         plannedStartDate: _plannedStartDate,
         plannedEndDate: _plannedEndDate,
         priority: _priority,
+        rfiSentToTeam: _rfiSentToTeam,
       );
 
       if (_isEditing) {
@@ -196,7 +199,18 @@ class _PlanningFormPageState extends ConsumerState<PlanningFormPage> {
                   if (v != null) _priority = v;
                 },
               ),
-              const SizedBox(height: 32),
+              const SizedBox(height: 16),
+
+              // ── RFI sent to team ─────────────────────────
+              CheckboxListTile(
+                title: const Text('RFI dispatched to team'),
+                subtitle: const Text('Mark when the NDT contractor has sent the RFI to their team'),
+                value: _rfiSentToTeam,
+                onChanged: (v) => setState(() => _rfiSentToTeam = v ?? false),
+                controlAffinity: ListTileControlAffinity.leading,
+                contentPadding: EdgeInsets.zero,
+              ),
+              const SizedBox(height: 16),
 
               FilledButton(
                 onPressed: _isSaving ? null : _save,

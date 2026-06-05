@@ -16,6 +16,7 @@ import '../../features/summaries/daily_summary_page.dart';
 import '../../features/summaries/company_summary_page.dart';
 import '../../features/summaries/project_summary_page.dart';
 import '../../features/summaries/charts_page.dart';
+import '../../features/summaries/professional_summary_page.dart';
 import '../../features/user_update/user_list_page.dart';
 import '../../features/user_update/user_form_page.dart';
 import '../../features/summaries/reports_hub_page.dart';
@@ -258,6 +259,12 @@ final appRouterProvider = Provider<GoRouter>((ref) {
                   state.uri.queryParameters['projectId'] ?? '';
               return ChartsPage(projectId: projectId);
             },
+          ),
+          GoRoute(
+            path: 'professional',
+            name: 'reports-professional',
+            builder: (context, state) =>
+                const ProfessionalSummaryPage(),
           ),
         ],
       ),

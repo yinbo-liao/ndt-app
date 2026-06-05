@@ -35,24 +35,23 @@ class AuditListPage extends ConsumerWidget {
                     DataColumn(label: Text('Timestamp', style: _hdr)),
                   ],
                   rows: logs.map((log) {
-                    final action = log['action'] as String? ?? '';
-                    final user = log['users'] as Map<String, dynamic>?;
-                    final userName = user?['full_name'] as String? ?? 'System';
-                    final changedAt = log['changed_at'] as String? ?? '';
+                    final userName = log.changedByUserName ?? 'System';
+                    final changedAt = log.changedAt?.toIso8601String() ?? '';
+                    final displayTime = changedAt.length > 16 ? changedAt.substring(0, 16) : changedAt;
                     return DataRow(
-                      color: action == 'DELETE'
+                      color: log.action == 'DELETE'
                           ? const WidgetStatePropertyAll(Color(0xFFFFEBEE))
-                          : action == 'INSERT'
+                          : log.action == 'INSERT'
                               ? const WidgetStatePropertyAll(Color(0xFFE8F5E9))
                               : null,
                       cells: [
-                        DataCell(Text(log['table_name'] as String? ?? '')),
+                        DataCell(Text(log.tableName)),
                         DataCell(Chip(
-                          label: Text(action, style: const TextStyle(fontSize: 10, fontWeight: FontWeight.bold)),
-                          backgroundColor: action == 'DELETE' ? Colors.red.withAlpha(20) : action == 'INSERT' ? Colors.green.withAlpha(20) : Colors.orange.withAlpha(20),
+                          label: Text(log.action, style: const TextStyle(fontSize: 10, fontWeight: FontWeight.bold)),
+                          backgroundColor: log.action == 'DELETE' ? Colors.red.withAlpha(20) : log.action == 'INSERT' ? Colors.green.withAlpha(20) : Colors.orange.withAlpha(20),
                         )),
                         DataCell(Text(userName)),
-                        DataCell(Text(changedAt.length > 16 ? changedAt.substring(0, 16) : changedAt)),
+                        DataCell(Text(displayTime)),
                       ],
                     );
                   }).toList(),

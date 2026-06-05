@@ -1,4 +1,5 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../data/models/notification_model.dart';
 import '../../data/repositories/notification_repository.dart';
 import '../../providers/auth_provider.dart';
 
@@ -8,7 +9,7 @@ final notificationRepoProvider =
 
 /// Fetch notifications for the current user.
 final userNotificationsProvider =
-    FutureProvider.autoDispose<List<Map<String, dynamic>>>((ref) async {
+    FutureProvider.autoDispose<List<NotificationModel>>((ref) async {
   final userId = ref.watch(currentUserProvider)?.id;
   if (userId == null) return [];
   final repo = ref.watch(notificationRepoProvider);
