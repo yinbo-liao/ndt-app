@@ -6,6 +6,7 @@ import '../../widgets/common/loading_indicator.dart';
 import '../../widgets/common/error_widget.dart';
 import '../../widgets/common/empty_state.dart';
 import '../../widgets/cards/summary_card.dart';
+import '../../widgets/forms/company_selector.dart';
 import '../../providers/auth_provider.dart';
 import '../../providers/role_provider.dart';
 import 'summary_controller.dart';
@@ -16,22 +17,44 @@ class CompanySummaryPage extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final companyId = ref.watch(currentUserCompanyIdProvider);
+    final jwtCompanyId = ref.watch(currentUserCompanyIdProvider);
     final selectedDate = ref.watch(selectedDateProvider);
     final isAdmin = ref.watch(isAdminProvider);
     final isCompany = ref.watch(isNdtCompanyProvider);
+    final selectedCompanyId = ref.watch(selectedReportCompanyIdProvider);
 
-    if (companyId == null) {
-      return const Center(child: Text('No company assigned'));
+    // Admin users can pick any company; company users use their JWT claim.
+    final effectiveCompanyId = jwtCompanyId ?? (isAdmin ? selectedCompanyId : null);
+
+    if (effectiveCompanyId == null) {
+      // Admin without a selected company: show selector.
+      if (isAdmin) {
+        return Scaffold(
+          appBar: AppBar(title: const Text('Company Daily Summary')),
+          body: const CompanySelectorWidget(),
+        );
+      }
+      return Scaffold(
+        appBar: AppBar(title: const Text('Company Daily Summary')),
+        body: const Center(child: Text('No company assigned')),
+      );
     }
 
     final summaryAsync =
-        ref.watch(dailyCompanySummaryProvider(companyId));
+        ref.watch(dailyCompanySummaryProvider(effectiveCompanyId));
 
     return Scaffold(
       appBar: AppBar(
         title: const Text('Company Daily Summary'),
         actions: [
+          if (isAdmin)
+            IconButton(
+              icon: const Icon(Icons.business),
+              tooltip: 'Change company',
+              onPressed: () => ref
+                  .read(selectedReportCompanyIdProvider.notifier)
+                  .state = null,
+            ),
           IconButton(
             icon: const Icon(Icons.calendar_today),
             onPressed: () async {
@@ -48,7 +71,6 @@ class CompanySummaryPage extends ConsumerWidget {
           ),
         ],
       ),
-      // FAB to add deployment (admin & ndt_company)
       floatingActionButton: (isAdmin || isCompany)
           ? FloatingActionButton.extended(
               heroTag: 'add-deployment-from-summary',
@@ -70,7 +92,7 @@ class CompanySummaryPage extends ConsumerWidget {
 
           return RefreshIndicator(
             onRefresh: () async =>
-                ref.invalidate(dailyCompanySummaryProvider(companyId)),
+                ref.invalidate(dailyCompanySummaryProvider(effectiveCompanyId)),
             child: SingleChildScrollView(
             padding: const EdgeInsets.all(16),
             child: Column(
@@ -147,7 +169,6 @@ class CompanySummaryPage extends ConsumerWidget {
                     ),
                   ],
                 ),
-                // Quick action buttons at the bottom
                 const SizedBox(height: 20),
                 if (isAdmin || isCompany) ...[
                   Text('Quick Actions', style: Theme.of(context).textTheme.titleSmall?.copyWith(color: Colors.grey[600])),
@@ -178,7 +199,7 @@ class CompanySummaryPage extends ConsumerWidget {
             const LoadingIndicator(message: 'Loading summary...'),
         error: (error, st) => AppErrorWidget(
           message: 'Failed to load summary: $error',
-          onRetry: () => ref.invalidate(dailyCompanySummaryProvider(companyId)),
+          onRetry: () => ref.invalidate(dailyCompanySummaryProvider(effectiveCompanyId)),
         ),
       ),
     );

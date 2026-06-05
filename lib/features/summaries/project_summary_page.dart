@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import '../../widgets/common/loading_indicator.dart';
 import '../../widgets/common/error_widget.dart';
 import '../../widgets/common/empty_state.dart';
+import '../../widgets/forms/company_selector.dart';
 import '../../providers/auth_provider.dart';
 import '../../providers/role_provider.dart';
 import 'summary_controller.dart';
@@ -14,21 +15,44 @@ class ProjectSummaryPage extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final companyId = ref.watch(currentUserCompanyIdProvider);
+    final jwtCompanyId = ref.watch(currentUserCompanyIdProvider);
     final isAdmin = ref.watch(isAdminProvider);
     final isCompany = ref.watch(isNdtCompanyProvider);
+    final selectedCompanyId = ref.watch(selectedReportCompanyIdProvider);
 
-    if (companyId == null) {
-      return const Center(child: Text('No company assigned'));
+    final effectiveCompanyId =
+        jwtCompanyId ?? (isAdmin ? selectedCompanyId : null);
+
+    if (effectiveCompanyId == null) {
+      if (isAdmin) {
+        return Scaffold(
+          appBar: AppBar(title: const Text('Project NDT Status')),
+          body: const CompanySelectorWidget(),
+        );
+      }
+      return Scaffold(
+        appBar: AppBar(title: const Text('Project NDT Status')),
+        body: const Center(child: Text('No company assigned')),
+      );
     }
 
-    final summaryAsync = ref.watch(projectStatusSummaryProvider(companyId));
+    final summaryAsync =
+        ref.watch(projectStatusSummaryProvider(effectiveCompanyId));
 
     return Scaffold(
       appBar: AppBar(
         title: const Text('Project NDT Status'),
+        actions: [
+          if (isAdmin)
+            IconButton(
+              icon: const Icon(Icons.business),
+              tooltip: 'Change company',
+              onPressed: () => ref
+                  .read(selectedReportCompanyIdProvider.notifier)
+                  .state = null,
+            ),
+        ],
       ),
-      // FAB to add new planning/RFI (admin & ndt_company)
       floatingActionButton: (isAdmin || isCompany)
           ? FloatingActionButton.extended(
               heroTag: 'add-planning-from-status',
@@ -52,7 +76,7 @@ class ProjectSummaryPage extends ConsumerWidget {
 
           return RefreshIndicator(
             onRefresh: () async =>
-                ref.invalidate(projectStatusSummaryProvider(companyId)),
+                ref.invalidate(projectStatusSummaryProvider(effectiveCompanyId)),
             child: ListView.builder(
               padding: const EdgeInsets.only(top: 8, bottom: 80),
               itemCount: summaries.length,
@@ -68,7 +92,7 @@ class ProjectSummaryPage extends ConsumerWidget {
         error: (error, st) => AppErrorWidget(
           message: 'Failed to load status: $error',
           onRetry: () =>
-              ref.invalidate(projectStatusSummaryProvider(companyId)),
+              ref.invalidate(projectStatusSummaryProvider(effectiveCompanyId)),
         ),
       ),
     );

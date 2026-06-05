@@ -9,6 +9,11 @@ final unifiedSummaryRepoProvider =
 /// Selected date for summaries.
 final selectedDateProvider = StateProvider<DateTime>((ref) => DateTime.now());
 
+/// Company selected by admin for viewing reports.
+/// When non-null, admin users see reports for this company instead of
+/// requiring a JWT-level ndt_company_id.
+final selectedReportCompanyIdProvider = StateProvider<String?>((ref) => null);
+
 /// Daily deployment summary for a specific project.
 final dailyProjectSummaryProvider = FutureProvider.autoDispose
     .family<DailyProjectSummary?, String>((ref, projectId) async {

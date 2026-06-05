@@ -4,7 +4,9 @@ import '../../widgets/common/loading_indicator.dart';
 import '../../widgets/common/error_widget.dart';
 import '../../widgets/common/empty_state.dart';
 import '../../widgets/cards/summary_card.dart';
+import '../../widgets/forms/company_selector.dart';
 import '../../providers/auth_provider.dart';
+import '../../providers/role_provider.dart';
 import 'summary_controller.dart';
 
 /// Professional register summary page.
@@ -16,19 +18,43 @@ class ProfessionalSummaryPage extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final companyId = ref.watch(currentUserCompanyIdProvider);
+    final jwtCompanyId = ref.watch(currentUserCompanyIdProvider);
+    final isAdmin = ref.watch(isAdminProvider);
+    final selectedCompanyId = ref.watch(selectedReportCompanyIdProvider);
 
-    if (companyId == null) {
+    final effectiveCompanyId =
+        jwtCompanyId ?? (isAdmin ? selectedCompanyId : null);
+
+    if (effectiveCompanyId == null) {
+      if (isAdmin) {
+        return Scaffold(
+          appBar: AppBar(title: const Text('Professional Summary')),
+          body: const CompanySelectorWidget(),
+        );
+      }
       return Scaffold(
         appBar: AppBar(title: const Text('Professional Summary')),
         body: const Center(child: Text('No company assigned')),
       );
     }
 
-    final summaryAsync = ref.watch(professionalSummaryProvider(companyId));
+    final summaryAsync =
+        ref.watch(professionalSummaryProvider(effectiveCompanyId));
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Professional Summary')),
+      appBar: AppBar(
+        title: const Text('Professional Summary'),
+        actions: [
+          if (isAdmin)
+            IconButton(
+              icon: const Icon(Icons.business),
+              tooltip: 'Change company',
+              onPressed: () => ref
+                  .read(selectedReportCompanyIdProvider.notifier)
+                  .state = null,
+            ),
+        ],
+      ),
       body: summaryAsync.when(
         data: (summary) {
           if (summary == null) {
@@ -57,7 +83,7 @@ class ProfessionalSummaryPage extends ConsumerWidget {
 
           return RefreshIndicator(
             onRefresh: () async =>
-                ref.invalidate(professionalSummaryProvider(companyId)),
+                ref.invalidate(professionalSummaryProvider(effectiveCompanyId)),
             child: SingleChildScrollView(
               padding: const EdgeInsets.all(16),
               child: Column(
@@ -145,7 +171,7 @@ class ProfessionalSummaryPage extends ConsumerWidget {
         error: (error, st) => AppErrorWidget(
           message: 'Failed to load: $error',
           onRetry: () =>
-              ref.invalidate(professionalSummaryProvider(companyId)),
+              ref.invalidate(professionalSummaryProvider(effectiveCompanyId)),
         ),
       ),
     );
