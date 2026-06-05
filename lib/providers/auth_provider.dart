@@ -21,24 +21,27 @@ final currentUserProvider = Provider<User?>((ref) {
 
 /// Whether the user is authenticated.
 ///
-/// Re-evaluates whenever [authStateChangesProvider] emits (sign-in, sign-out,
-/// token refresh) so that [GoRouter] redirects and UI rebuild correctly.
+/// Synchronously checks the current session (non-blocking), then listens
+/// to [authStateChangesProvider] for invalidation via [AuthStateListener].
+/// This avoids blocking on the Supabase onAuthStateChange stream, which may
+/// not emit for late subscribers.
 final isAuthenticatedProvider = Provider<bool>((ref) {
-  ref.watch(authStateChangesProvider);
   final authService = ref.watch(authServiceProvider);
   return authService.isAuthenticated;
 });
 
 /// The current user's role from JWT app_metadata, or null.
+///
+/// Synchronous for the same reason as [isAuthenticatedProvider].
 final currentUserRoleProvider = Provider<String?>((ref) {
-  ref.watch(authStateChangesProvider);
   final authService = ref.watch(authServiceProvider);
   return authService.currentRole;
 });
 
 /// The current user's company ID from JWT app_metadata, or null.
+///
+/// Synchronous for the same reason as [isAuthenticatedProvider].
 final currentUserCompanyIdProvider = Provider<String?>((ref) {
-  ref.watch(authStateChangesProvider);
   final authService = ref.watch(authServiceProvider);
   return authService.currentCompanyId;
 });
