@@ -54,12 +54,13 @@ class _ProfessionalFormPageState
     });
   }
 
-  void _loadCompanies() {
+  Future<void> _loadCompanies() async {
     if (_companies.isNotEmpty) return;
-    final companiesAsync = ref.read(allCompaniesProvider);
-    companiesAsync.whenData((companies) {
+    try {
+      final repo = ref.read(companyRepoProvider);
+      final companies = await repo.getAll(activeOnly: false);
       if (mounted) setState(() => _companies = companies);
-    });
+    } catch (_) {}
   }
 
   Future<void> _save() async {
