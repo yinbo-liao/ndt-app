@@ -18,6 +18,11 @@ class ProjectListPage extends ConsumerWidget {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Projects'),
+        leading: IconButton(
+          icon: const Icon(Icons.dashboard),
+          tooltip: 'Back to Dashboard',
+          onPressed: () => context.go('/dashboard'),
+        ),
       ),
       floatingActionButton: FloatingActionButton(
         heroTag: 'add-project',
