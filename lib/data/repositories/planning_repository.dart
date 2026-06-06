@@ -23,6 +23,18 @@ class PlanningRepository {
 
   // ── Read ───────────────────────────────────────────────────
 
+  /// Get all planning entries across all projects (admin).
+  Future<List<PlanningModel>> getAll() async {
+    final response = await _client
+        .from(SupabaseClientWrapper.tblPlanning)
+        .select('*, projects:project_id(project_name, project_code)')
+        .order('planned_start_date', ascending: false);
+
+    return SupabaseClientWrapper.safeList(response)
+        .map((json) => PlanningModel.fromJson(json))
+        .toList();
+  }
+
   /// Get planning entries for a project.
   Future<List<PlanningModel>> getByProject(String projectId) async {
     final response = await _client
