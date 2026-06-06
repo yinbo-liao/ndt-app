@@ -126,16 +126,20 @@ class AppConstants {
     deployCompleted,
   ];
 
-  // ── Project Classifications ───────────────────────────────
-  static const String classMarine = 'marine';
-  static const String classIndustrial = 'industrial';
-  static const String classOffshore = 'offshore';
-  static const String classOnshore = 'onshore';
+  // ── Project Classifications (Classification Societies) ──────
+  static const String classABS = 'ABS';
+  static const String classDNV = 'DNV';
+  static const String classBV = 'BV';
+  static const String classLRS = 'LRS';
+  static const String classRINA = 'RINA';
+  static const String classKR = 'KR';
 
   static const List<String> classifications = [
-    classMarine,
-    classIndustrial,
-    classOffshore,
-    classOnshore,
+    classABS,
+    classDNV,
+    classBV,
+    classLRS,
+    classRINA,
+    classKR,
   ];
 }
