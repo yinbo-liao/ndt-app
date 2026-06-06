@@ -86,15 +86,26 @@ class _ProjectListTile extends StatelessWidget {
             ),
           ],
         ),
-        trailing: project.active
-            ? const Chip(
-                label: Text('Active', style: TextStyle(fontSize: 11)),
-                backgroundColor: Colors.green,
-                labelStyle: TextStyle(color: Colors.white),
-              )
-            : const Chip(
-                label: Text('Inactive', style: TextStyle(fontSize: 11)),
-              ),
+        trailing: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            IconButton(
+              icon: const Icon(Icons.edit, size: 20),
+              tooltip: 'Edit project',
+              onPressed: () => context.push('/projects/create'),
+            ),
+            const SizedBox(width: 4),
+            project.active
+                ? const Chip(
+                    label: Text('Active', style: TextStyle(fontSize: 11)),
+                    backgroundColor: Colors.green,
+                    labelStyle: TextStyle(color: Colors.white),
+                  )
+                : const Chip(
+                    label: Text('Inactive', style: TextStyle(fontSize: 11)),
+                  ),
+          ],
+        ),
         onTap: () =>
             context.push('/projects/${project.id}'),
       ),

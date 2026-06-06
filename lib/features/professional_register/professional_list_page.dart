@@ -207,6 +207,12 @@ class _ProfessionalTile extends ConsumerWidget {
                 child: Icon(Icons.warning_amber,
                     color: Colors.orange, size: 18),
               ),
+            IconButton(
+              icon: const Icon(Icons.edit, size: 18),
+              tooltip: 'Edit professional',
+              onPressed: () =>
+                  context.push('/professionals/${professional.id}/edit'),
+            ),
             Container(
               padding: const EdgeInsets.symmetric(
                   horizontal: 6, vertical: 2),
