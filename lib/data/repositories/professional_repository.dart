@@ -26,6 +26,47 @@ class ProfessionalRepository {
 
   // ── Read ───────────────────────────────────────────────────
 
+  /// Get all non-deleted professionals across all companies (admin).
+  Future<List<ProfessionalModel>> getAll() async {
+    final response = await _client
+        .from(SupabaseClientWrapper.tblProfessionalRegister)
+        .select()
+        .isFilter('deleted_at', null)
+        .order('name');
+
+    return SupabaseClientWrapper.safeList(response)
+        .map((json) => ProfessionalModel.fromJson(json))
+        .toList();
+  }
+
+  /// Get professionals by working sector (admin, no company filter).
+  Future<List<ProfessionalModel>> getAllBySector(String workingSector) async {
+    final response = await _client
+        .from(SupabaseClientWrapper.tblProfessionalRegister)
+        .select()
+        .eq('working_sector', workingSector)
+        .isFilter('deleted_at', null)
+        .order('name');
+
+    return SupabaseClientWrapper.safeList(response)
+        .map((json) => ProfessionalModel.fromJson(json))
+        .toList();
+  }
+
+  /// Get professionals by certification status (admin, no company filter).
+  Future<List<ProfessionalModel>> getAllByStatus(String certificateStatus) async {
+    final response = await _client
+        .from(SupabaseClientWrapper.tblProfessionalRegister)
+        .select()
+        .eq('certificate_status', certificateStatus)
+        .isFilter('deleted_at', null)
+        .order('expiry_date');
+
+    return SupabaseClientWrapper.safeList(response)
+        .map((json) => ProfessionalModel.fromJson(json))
+        .toList();
+  }
+
   /// Get all non-deleted professionals for a company.
   Future<List<ProfessionalModel>> getByCompany(String companyId) async {
     final response = await _client

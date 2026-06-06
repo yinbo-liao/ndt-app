@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-NDT (Non-Destructive Testing) Management Mobile App — a Flutter application for managing NDT operations including contractor registration, project management, NDT planning, team deployments (day/night shifts), and reporting dashboards with charts.
+NDT (Non-Destructive Testing) Management Mobile App — a Flutter application for managing NDT operations including contractor registration, project management, NDT planning, team deployments (day/night shifts), reporting dashboards with charts, professional register management, audit logs, and notifications.
 
 **Stack:** Flutter 3.x + Dart 3.12+ + Supabase (PostgreSQL) + Riverpod + GoRouter + fl_chart
 
@@ -56,11 +56,16 @@ lib/
 │   ├── auth/                 # Login page + auth controller
 │   ├── dashboard/            # Role-based dashboard (admin/company/team)
 │   ├── contractor_register/  # CRUD for NDT certificates
-│   ├── projects/             # Project list + detail
-│   ├── ndt_planning/         # NDT planning CRUD
+│   ├── professional_register/# CRUD for individual NDT professionals
+│   ├── projects/             # Project list + detail + form
+│   ├── companies/            # NDT company list + detail + form
+│   ├── ndt_planning/         # NDT planning (RFI) CRUD
 │   ├── deployments/          # Team deployments with shift selector
 │   ├── team_management/      # Team member list + assignments
-│   └── summaries/            # Daily/company/project summaries + charts
+│   ├── summaries/            # Daily/company/project/professional summaries + charts
+│   ├── user_update/          # Admin user management (list + create/edit)
+│   ├── audit_logs/           # Audit trail viewer
+│   └── notifications/        # User notification list
 ├── widgets/                  # Reusable UI components
 │   ├── common/               # app_bar, loading_indicator, error_widget, empty_state
 │   ├── forms/                # date_picker_field, dropdown_field, text_input_field
@@ -84,22 +89,27 @@ lib/
 
 ### Database — Supabase Backend
 
-The complete schema is at `supabase/migrations/001_initial_schema.sql`. Key tables:
+The complete schema is at `supabase/migrations/clean_slate.sql` (authoritative). Key tables:
 - `ndt_companies`, `users` (extends `auth.users`), `projects`
 - `ndt_contractor_register` (soft-delete with `deleted_at`, certificate validation)
+- `ndt_professional_register` (individual NDT professionals, soft-delete)
 - `project_ndt_planning` (links projects to NDT companies)
 - `ndt_team_deployments` (shift-aware with `shift_type` enum, JSONB `team_members`, soft-delete)
 - `ndt_team_assignments` (users to projects)
-- `audit_logs` (change tracking)
+- `ndt_professional_assignments` (professionals to planning)
+- `audit_logs` (change tracking), `notifications`
 
 Three roles govern RLS: `admin` (full access), `ndt_company` (own data), `ndt_team` (assigned projects only).
 
-Five SQL functions provide summary data (called via `_client.rpc()`):
+**CRITICAL:** RLS uses `get_user_role()` and `get_user_company_id()` SQL helper functions (defined in `supabase/migrations/fix_rls.sql`) which read from `auth.jwt()->'app_metadata'` — NOT from top-level JWT claims. The top-level JWT `role` is always `authenticated` for logged-in users.
+
+Six SQL functions provide summary data (called via `_client.rpc()`):
 - `daily_deployment_summary_by_project(p_project_id, p_date)`
 - `daily_deployment_summary_by_company(p_company_id, p_date)`
 - `weekly_deployment_trend(p_project_id, p_start_date, p_end_date)`
 - `contractor_register_summary(p_company_id, p_month_start)`
 - `project_ndt_status_summary(p_company_id)`
+- `professional_register_summary(p_company_id)`
 
 ## Important Conventions
 
@@ -131,6 +141,49 @@ Five SQL functions provide summary data (called via `_client.rpc()`):
 
 ### Tests
 Tests are in `test/`. Run with `flutter test`. To test repositories, mock `SupabaseClient` — do not connect to a real database in unit tests.
+
+### Admin Data Scope
+
+Admin users have no `ndt_company_id` in their JWT claims. Providers that scope data by company must handle this:
+
+```dart
+// Pattern: check isAdminProvider → use admin method, otherwise company-scoped
+final professionalsProvider = FutureProvider.autoDispose<List<ProfessionalModel>>((ref) async {
+  final repository = ref.watch(professionalRepoProvider);
+  final isAdmin = ref.watch(isAdminProvider);
+
+  if (isAdmin) return repository.getAll();       // admin sees ALL records
+  final companyId = ref.watch(currentUserCompanyIdProvider);
+  if (companyId == null) return [];
+  return repository.getByCompany(companyId);     // others see own company
+});
+```
+
+Repositories that need admin `getAll()` methods:
+- `ContractorRepository` — has `getAll()`, `getByMonth(DateTime)` (no company filter)
+- `ProfessionalRepository` — has `getAll()`, `getAllBySector()`, `getAllByStatus()` (no company filter)
+- `CompanyRepository` and `ProjectRepository` — their `getAll()` already works without a company filter
+
+### GoRouter Admin Edit Routes
+
+Admin edit routes use a **wrapper widget pattern** that fetches the model by ID via `FutureBuilder` and passes it to the form's `existing` parameter. This avoids changing form constructors.
+
+Wrapper widgets are defined at the bottom of `lib/core/router/app_router.dart`:
+- `_CompanyEditPage(companyId:)` → `CompanyFormPage(existing:)`
+- `_ProjectEditPage(projectId:)` → `ProjectFormPage(existing:)`
+- `_ContractorEditPage(contractorId:)` → `ContractorFormPage(existing:)`
+- `_ProfessionalEditPage(professionalId:)` → `ProfessionalFormPage(existing:)`
+
+Existing edit route for users uses a different pattern: `UserFormPage(userId:)` fetches the user internally in `initState`.
+
+Route structure for admin CRUD:
+| Entity | List | Create | Detail | Edit |
+|--------|------|--------|--------|------|
+| Companies | `/companies` | `/companies/create` | `/companies/:id` | `/companies/:id/edit` |
+| Projects | `/projects` | `/projects/create` | `/projects/:id` | `/projects/:id/edit` |
+| Contractors | `/contractors` | `/contractors/create` | `/contractors/:id` | `/contractors/:id/edit` |
+| Professionals | `/professionals` | `/professionals/create` | `/professionals/:id` | `/professionals/:id/edit` |
+| Users | `/users` | `/users/create` | — | `/users/:id/edit` |
 
 ## Flutter Design Agent (MCP Subagent)
 

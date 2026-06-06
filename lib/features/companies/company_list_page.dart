@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import '../../data/models/company_model.dart';
 import '../../widgets/common/loading_indicator.dart';
 import '../../widgets/common/error_widget.dart';
 import '../../widgets/common/empty_state.dart';
 import 'company_controller.dart';
-import 'company_form_page.dart';
 
 /// List page for NDT Companies.
 class CompanyListPage extends ConsumerWidget {
@@ -19,9 +19,7 @@ class CompanyListPage extends ConsumerWidget {
       appBar: AppBar(title: const Text('NDT Companies')),
       floatingActionButton: FloatingActionButton(
         heroTag: 'add-company',
-        onPressed: () => Navigator.of(context).push(
-          MaterialPageRoute(builder: (_) => const CompanyFormPage()),
-        ).then((_) => ref.invalidate(allCompaniesProvider)),
+        onPressed: () => context.push('/companies/create'),
         child: const Icon(Icons.add),
       ),
       body: companiesAsync.when(
@@ -72,9 +70,7 @@ class _CompanyTile extends ConsumerWidget {
           children: [
             IconButton(
               icon: const Icon(Icons.edit, size: 20),
-              onPressed: () => Navigator.of(context).push(
-                MaterialPageRoute(builder: (_) => CompanyFormPage(existing: company)),
-              ).then((_) => ref.invalidate(allCompaniesProvider)),
+              onPressed: () => context.push('/companies/${company.id}/edit'),
             ),
             company.active
                 ? const Chip(label: Text('Active', style: TextStyle(fontSize: 10)), backgroundColor: Colors.green, labelStyle: TextStyle(color: Colors.white))

@@ -8,6 +8,7 @@ import '../../widgets/common/loading_indicator.dart';
 import '../../widgets/common/error_widget.dart';
 import '../../widgets/common/empty_state.dart';
 import 'contractor_controller.dart';
+import 'contractor_form_page.dart';
 
 /// List page for NDT Contractor Register entries.
 ///
@@ -204,6 +205,7 @@ class _ContractorListPageState extends ConsumerState<ContractorListPage> {
             DataColumn(label: Text('Issue Date', style: _headerStyle)),
             DataColumn(label: Text('Expire Date', style: _headerStyle)),
             DataColumn(label: Text('Status', style: _headerStyle)),
+            DataColumn(label: Text('', style: _headerStyle)),
           ],
           rows: contractors.map((c) {
             final isExpired = c.expireDate.isBefore(today);
@@ -254,6 +256,27 @@ class _ContractorListPageState extends ConsumerState<ContractorListPage> {
                             c.validationStatus),
                       ),
                     ),
+                  ),
+                ),
+                DataCell(
+                  IconButton(
+                    icon: const Icon(Icons.edit, size: 18),
+                    tooltip: 'Edit contractor',
+                    onPressed: () {
+                      // Navigate to edit form via the existing route.
+                      // The ContractorFormPage handles edit when `existing`
+                      // is passed; we use the route-based wrapper.
+                      Navigator.of(context).push(
+                        MaterialPageRoute(
+                          builder: (_) => ContractorFormPage(existing: c),
+                        ),
+                      ).then((_) {
+                        if (context.mounted) {
+                          ref.invalidate(contractorsProvider);
+                          ref.invalidate(contractorsByMonthProvider);
+                        }
+                      });
+                    },
                   ),
                 ),
               ],

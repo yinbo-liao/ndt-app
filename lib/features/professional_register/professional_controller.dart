@@ -2,41 +2,57 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../data/models/professional_model.dart';
 import '../../data/repositories/professional_repository.dart';
 import '../../providers/auth_provider.dart';
+import '../../providers/role_provider.dart';
 
 /// Provides the [ProfessionalRepository] singleton.
 final professionalRepoProvider =
     Provider<ProfessionalRepository>((ref) => ProfessionalRepository());
 
-/// Fetch all professionals for the current user's company.
+/// Fetch all professionals. Admin sees all records; others see their company's.
 final professionalsProvider =
     FutureProvider.autoDispose<List<ProfessionalModel>>((ref) async {
+  final repository = ref.watch(professionalRepoProvider);
+  final isAdmin = ref.watch(isAdminProvider);
+
+  if (isAdmin) {
+    return repository.getAll();
+  }
+
   final companyId = ref.watch(currentUserCompanyIdProvider);
   if (companyId == null) return [];
-
-  final repository = ref.watch(professionalRepoProvider);
   return repository.getByCompany(companyId);
 });
 
-/// Fetch professionals by working sector for the current company.
+/// Fetch professionals by working sector. Admin sees all; others scoped.
 final professionalsBySectorProvider = FutureProvider.autoDispose
     .family<List<ProfessionalModel>, String>((ref, sector) async {
+  final repository = ref.watch(professionalRepoProvider);
+  final isAdmin = ref.watch(isAdminProvider);
+
+  if (isAdmin) {
+    return repository.getAllBySector(sector);
+  }
+
   final companyId = ref.watch(currentUserCompanyIdProvider);
   if (companyId == null) return [];
-
-  final repository = ref.watch(professionalRepoProvider);
   return repository.getByCompanyAndSector(
     companyId: companyId,
     workingSector: sector,
   );
 });
 
-/// Fetch professionals by certification status.
+/// Fetch professionals by certification status. Admin sees all; others scoped.
 final professionalsByStatusProvider = FutureProvider.autoDispose
     .family<List<ProfessionalModel>, String>((ref, status) async {
+  final repository = ref.watch(professionalRepoProvider);
+  final isAdmin = ref.watch(isAdminProvider);
+
+  if (isAdmin) {
+    return repository.getAllByStatus(status);
+  }
+
   final companyId = ref.watch(currentUserCompanyIdProvider);
   if (companyId == null) return [];
-
-  final repository = ref.watch(professionalRepoProvider);
   return repository.getByStatus(
     companyId: companyId,
     certificateStatus: status,

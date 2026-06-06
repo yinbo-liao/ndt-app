@@ -92,7 +92,7 @@ class _ProjectListTile extends StatelessWidget {
             IconButton(
               icon: const Icon(Icons.edit, size: 20),
               tooltip: 'Edit project',
-              onPressed: () => context.push('/projects/create'),
+              onPressed: () => context.push('/projects/${project.id}/edit'),
             ),
             const SizedBox(width: 4),
             project.active

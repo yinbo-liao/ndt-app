@@ -23,6 +23,33 @@ class ContractorRepository {
 
   // ── Read ───────────────────────────────────────────────────
 
+  /// Get all non-deleted contractors across all companies (admin).
+  Future<List<ContractorModel>> getAll() async {
+    final response = await _client
+        .from(SupabaseClientWrapper.tblContractorRegister)
+        .select()
+        .isFilter('deleted_at', null)
+        .order('expire_date', ascending: false);
+
+    return SupabaseClientWrapper.safeList(response)
+        .map((json) => ContractorModel.fromJson(json))
+        .toList();
+  }
+
+  /// Get all non-deleted contractors for a given month (admin, no company filter).
+  Future<List<ContractorModel>> getByMonth(DateTime monthStart) async {
+    final response = await _client
+        .from(SupabaseClientWrapper.tblContractorRegister)
+        .select()
+        .eq('report_month', monthStart.toIso8601String().split('T')[0])
+        .isFilter('deleted_at', null)
+        .order('expire_date', ascending: false);
+
+    return SupabaseClientWrapper.safeList(response)
+        .map((json) => ContractorModel.fromJson(json))
+        .toList();
+  }
+
   /// Get all non-deleted contractors for a company.
   Future<List<ContractorModel>> getByCompany(String companyId) async {
     final response = await _client

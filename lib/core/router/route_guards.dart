@@ -24,7 +24,7 @@ class RouteGuards {
 
   /// Returns true if the user can edit contractor register.
   static bool canEditContractors(String? role) =>
-      role == AppConstants.roleNdtCompany;
+      role == AppConstants.roleAdmin || role == AppConstants.roleNdtCompany;
 
   /// Returns true if the user can view summaries and charts.
   static bool canViewSummaries(String? role) =>
