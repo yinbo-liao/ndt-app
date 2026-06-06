@@ -11,6 +11,7 @@ import '../../data/repositories/company_repository.dart';
 import '../../data/repositories/contractor_repository.dart';
 import '../../data/repositories/professional_repository.dart';
 import '../../data/repositories/project_repository.dart';
+import '../../widgets/common/app_shell.dart';
 import 'route_guards.dart';
 import '../../features/auth/login_page.dart';
 import '../../features/dashboard/dashboard_page.dart';
@@ -87,333 +88,336 @@ final appRouterProvider = Provider<GoRouter>((ref) {
       return null;
     },
     routes: [
-      // ── Login ──────────────────────────────────────────────
+      // ── Login (no shell — standalone page) ─────────────────
       GoRoute(
         path: '/login',
         name: 'login',
         builder: (context, state) => const LoginPage(),
       ),
 
-      // ── Dashboard ──────────────────────────────────────────
-      GoRoute(
-        path: '/dashboard',
-        name: 'dashboard',
-        builder: (context, state) => const DashboardPage(),
-      ),
-
-      // ── Projects ─────────────────────────────────────────
-      GoRoute(
-        path: '/projects',
-        name: 'projects',
-        builder: (context, state) => const ProjectListPage(),
+      // ── Shell: persistent bottom nav (Tables | Home | Reports) ─
+      ShellRoute(
+        builder: (context, state, child) => AppShell(child: child),
         routes: [
+          // ── Dashboard ──────────────────────────────────────
           GoRoute(
-            path: 'create',
-            name: 'project-create',
-            builder: (context, state) =>
-                const ProjectFormPage(),
+            path: '/dashboard',
+            name: 'dashboard',
+            builder: (context, state) => const DashboardPage(),
           ),
-          GoRoute(
-            path: ':projectId',
-            name: 'project-detail',
-            builder: (context, state) {
-              final projectId =
-                  state.pathParameters['projectId']!;
-              return ProjectDetailPage(
-                  projectId: projectId);
-            },
-          ),
-          GoRoute(
-            path: ':projectId/edit',
-            name: 'project-edit',
-            builder: (context, state) {
-              final projectId =
-                  state.pathParameters['projectId']!;
-              return _ProjectEditPage(projectId: projectId);
-            },
-          ),
-        ],
-      ),
 
-      // ── NDT Contractor Register ────────────────────────────
-      GoRoute(
-        path: '/contractors',
-        name: 'contractors',
-        builder: (context, state) => const ContractorListPage(),
-        routes: [
+          // ── Projects ─────────────────────────────────────────
           GoRoute(
-            path: 'create',
-            name: 'contractor-create',
-            builder: (context, state) => const ContractorFormPage(),
+            path: '/projects',
+            name: 'projects',
+            builder: (context, state) => const ProjectListPage(),
+            routes: [
+              GoRoute(
+                path: 'create',
+                name: 'project-create',
+                builder: (context, state) =>
+                    const ProjectFormPage(),
+              ),
+              GoRoute(
+                path: ':projectId',
+                name: 'project-detail',
+                builder: (context, state) {
+                  final projectId =
+                      state.pathParameters['projectId']!;
+                  return ProjectDetailPage(
+                      projectId: projectId);
+                },
+              ),
+              GoRoute(
+                path: ':projectId/edit',
+                name: 'project-edit',
+                builder: (context, state) {
+                  final projectId =
+                      state.pathParameters['projectId']!;
+                  return _ProjectEditPage(projectId: projectId);
+                },
+              ),
+            ],
           ),
-          GoRoute(
-            path: ':contractorId/edit',
-            name: 'contractor-edit',
-            builder: (context, state) {
-              final contractorId =
-                  state.pathParameters['contractorId']!;
-              return _ContractorEditPage(contractorId: contractorId);
-            },
-          ),
-          GoRoute(
-            path: ':contractorId',
-            name: 'contractor-detail',
-            builder: (context, state) {
-              // Contractor detail is accessed via inline detail wrapper
-              // on the list page. Route-based detail requires fetching
-              // the contractor by ID — fall through to list for now.
-              return const ContractorListPage();
-            },
-          ),
-        ],
-      ),
 
-      // ── NDT Planning (RFI) ─────────────────────────────────
-      GoRoute(
-        path: '/planning',
-        name: 'planning',
-        builder: (context, state) {
-          final projectId =
-              state.uri.queryParameters['projectId'] ?? '';
-          return PlanningListPage(projectId: projectId);
-        },
-        routes: [
+          // ── NDT Contractor Register ────────────────────────────
           GoRoute(
-            path: 'create',
-            name: 'planning-create',
+            path: '/contractors',
+            name: 'contractors',
+            builder: (context, state) => const ContractorListPage(),
+            routes: [
+              GoRoute(
+                path: 'create',
+                name: 'contractor-create',
+                builder: (context, state) => const ContractorFormPage(),
+              ),
+              GoRoute(
+                path: ':contractorId/edit',
+                name: 'contractor-edit',
+                builder: (context, state) {
+                  final contractorId =
+                      state.pathParameters['contractorId']!;
+                  return _ContractorEditPage(contractorId: contractorId);
+                },
+              ),
+              GoRoute(
+                path: ':contractorId',
+                name: 'contractor-detail',
+                builder: (context, state) {
+                  return const ContractorListPage();
+                },
+              ),
+            ],
+          ),
+
+          // ── NDT Planning (RFI) ─────────────────────────────────
+          GoRoute(
+            path: '/planning',
+            name: 'planning',
             builder: (context, state) {
               final projectId =
                   state.uri.queryParameters['projectId'] ?? '';
-              return PlanningFormPage(projectId: projectId);
+              return PlanningListPage(projectId: projectId);
             },
+            routes: [
+              GoRoute(
+                path: 'create',
+                name: 'planning-create',
+                builder: (context, state) {
+                  final projectId =
+                      state.uri.queryParameters['projectId'] ?? '';
+                  return PlanningFormPage(projectId: projectId);
+                },
+              ),
+              GoRoute(
+                path: ':planningId',
+                name: 'planning-detail',
+                builder: (context, state) {
+                  final planningId =
+                      state.pathParameters['planningId']!;
+                  return PlanningDetailPage(planningId: planningId);
+                },
+              ),
+              GoRoute(
+                path: ':planningId/edit',
+                name: 'planning-edit',
+                builder: (context, state) {
+                  final projectId =
+                      state.uri.queryParameters['projectId'] ?? '';
+                  return PlanningFormPage(projectId: projectId);
+                },
+              ),
+            ],
           ),
-          GoRoute(
-            path: ':planningId',
-            name: 'planning-detail',
-            builder: (context, state) {
-              final planningId =
-                  state.pathParameters['planningId']!;
-              return PlanningDetailPage(planningId: planningId);
-            },
-          ),
-          GoRoute(
-            path: ':planningId/edit',
-            name: 'planning-edit',
-            builder: (context, state) {
-              final projectId =
-                  state.uri.queryParameters['projectId'] ?? '';
-              return PlanningFormPage(projectId: projectId);
-            },
-          ),
-        ],
-      ),
 
-      // ── NDT Deployments ───────────────────────────────────
-      GoRoute(
-        path: '/deployments',
-        name: 'deployments',
-        builder: (context, state) => const DeploymentListPage(),
-        routes: [
+          // ── NDT Deployments ───────────────────────────────────
           GoRoute(
-            path: 'create',
-            name: 'deployment-create',
-            builder: (context, state) => const DeploymentFormPage(),
+            path: '/deployments',
+            name: 'deployments',
+            builder: (context, state) => const DeploymentListPage(),
+            routes: [
+              GoRoute(
+                path: 'create',
+                name: 'deployment-create',
+                builder: (context, state) => const DeploymentFormPage(),
+              ),
+              GoRoute(
+                path: ':deploymentId',
+                name: 'deployment-detail',
+                builder: (context, state) {
+                  final deploymentId =
+                      state.pathParameters['deploymentId']!;
+                  return DeploymentDetailPage(
+                    deploymentId: deploymentId,
+                  );
+                },
+              ),
+              GoRoute(
+                path: ':deploymentId/edit',
+                name: 'deployment-edit',
+                builder: (context, state) => const DeploymentFormPage(),
+              ),
+            ],
           ),
-          GoRoute(
-            path: ':deploymentId',
-            name: 'deployment-detail',
-            builder: (context, state) {
-              final deploymentId =
-                  state.pathParameters['deploymentId']!;
-              return DeploymentDetailPage(
-                deploymentId: deploymentId,
-              );
-            },
-          ),
-          GoRoute(
-            path: ':deploymentId/edit',
-            name: 'deployment-edit',
-            builder: (context, state) => const DeploymentFormPage(),
-          ),
-        ],
-      ),
 
-      // ── Reports ───────────────────────────────────────────
-      GoRoute(
-        path: '/reports',
-        name: 'reports-hub',
-        builder: (context, state) => const ReportsHubPage(),
-        routes: [
+          // ── Reports ───────────────────────────────────────────
           GoRoute(
-            path: 'daily',
-            name: 'reports-daily',
-            builder: (context, state) {
-              final projectId =
-                  state.uri.queryParameters['projectId'] ?? '';
-              return DailySummaryPage(
-                projectId: projectId,
-                projectName:
-                    state.uri.queryParameters['projectName'] ?? '',
-              );
-            },
+            path: '/reports',
+            name: 'reports-hub',
+            builder: (context, state) => const ReportsHubPage(),
+            routes: [
+              GoRoute(
+                path: 'daily',
+                name: 'reports-daily',
+                builder: (context, state) {
+                  final projectId =
+                      state.uri.queryParameters['projectId'] ?? '';
+                  return DailySummaryPage(
+                    projectId: projectId,
+                    projectName:
+                        state.uri.queryParameters['projectName'] ?? '',
+                  );
+                },
+              ),
+              GoRoute(
+                path: 'company',
+                name: 'reports-company',
+                builder: (context, state) =>
+                    const CompanySummaryPage(),
+              ),
+              GoRoute(
+                path: 'project-status',
+                name: 'reports-project-status',
+                builder: (context, state) =>
+                    const ProjectSummaryPage(),
+              ),
+              GoRoute(
+                path: 'charts',
+                name: 'reports-charts',
+                builder: (context, state) {
+                  final projectId =
+                      state.uri.queryParameters['projectId'] ?? '';
+                  return ChartsPage(projectId: projectId);
+                },
+              ),
+              GoRoute(
+                path: 'professional',
+                name: 'reports-professional',
+                builder: (context, state) =>
+                    const ProfessionalSummaryPage(),
+              ),
+            ],
           ),
-          GoRoute(
-            path: 'company',
-            name: 'reports-company',
-            builder: (context, state) =>
-                const CompanySummaryPage(),
-          ),
-          GoRoute(
-            path: 'project-status',
-            name: 'reports-project-status',
-            builder: (context, state) =>
-                const ProjectSummaryPage(),
-          ),
-          GoRoute(
-            path: 'charts',
-            name: 'reports-charts',
-            builder: (context, state) {
-              final projectId =
-                  state.uri.queryParameters['projectId'] ?? '';
-              return ChartsPage(projectId: projectId);
-            },
-          ),
-          GoRoute(
-            path: 'professional',
-            name: 'reports-professional',
-            builder: (context, state) =>
-                const ProfessionalSummaryPage(),
-          ),
-        ],
-      ),
 
-      // ── Companies ────────────────────────────────────────
-      GoRoute(
-        path: '/companies',
-        name: 'companies',
-        builder: (context, state) => const CompanyListPage(),
-        routes: [
+          // ── Companies ────────────────────────────────────────
           GoRoute(
-            path: 'create',
-            name: 'company-create',
-            builder: (context, state) => const CompanyFormPage(),
+            path: '/companies',
+            name: 'companies',
+            builder: (context, state) => const CompanyListPage(),
+            routes: [
+              GoRoute(
+                path: 'create',
+                name: 'company-create',
+                builder: (context, state) => const CompanyFormPage(),
+              ),
+              GoRoute(
+                path: ':companyId',
+                name: 'company-detail',
+                builder: (context, state) {
+                  final companyId =
+                      state.pathParameters['companyId']!;
+                  return CompanyDetailPage(companyId: companyId);
+                },
+              ),
+              GoRoute(
+                path: ':companyId/edit',
+                name: 'company-edit',
+                builder: (context, state) {
+                  final companyId =
+                      state.pathParameters['companyId']!;
+                  return _CompanyEditPage(companyId: companyId);
+                },
+              ),
+            ],
           ),
-          GoRoute(
-            path: ':companyId',
-            name: 'company-detail',
-            builder: (context, state) {
-              final companyId =
-                  state.pathParameters['companyId']!;
-              return CompanyDetailPage(companyId: companyId);
-            },
-          ),
-          GoRoute(
-            path: ':companyId/edit',
-            name: 'company-edit',
-            builder: (context, state) {
-              final companyId =
-                  state.pathParameters['companyId']!;
-              return _CompanyEditPage(companyId: companyId);
-            },
-          ),
-        ],
-      ),
 
-      // ── NDT Professional Register ────────────────────────
-      GoRoute(
-        path: '/professionals',
-        name: 'professionals',
-        builder: (context, state) => const ProfessionalListPage(),
-        routes: [
+          // ── NDT Professional Register ────────────────────────
           GoRoute(
-            path: 'create',
-            name: 'professional-create',
-            builder: (context, state) =>
-                const ProfessionalFormPage(),
+            path: '/professionals',
+            name: 'professionals',
+            builder: (context, state) => const ProfessionalListPage(),
+            routes: [
+              GoRoute(
+                path: 'create',
+                name: 'professional-create',
+                builder: (context, state) =>
+                    const ProfessionalFormPage(),
+              ),
+              GoRoute(
+                path: ':professionalId',
+                name: 'professional-detail',
+                builder: (context, state) {
+                  final professionalId =
+                      state.pathParameters['professionalId']!;
+                  return ProfessionalDetailPage(
+                      professionalId: professionalId);
+                },
+              ),
+              GoRoute(
+                path: ':professionalId/edit',
+                name: 'professional-edit',
+                builder: (context, state) {
+                  final professionalId =
+                      state.pathParameters['professionalId']!;
+                  return _ProfessionalEditPage(professionalId: professionalId);
+                },
+              ),
+            ],
           ),
-          GoRoute(
-            path: ':professionalId',
-            name: 'professional-detail',
-            builder: (context, state) {
-              final professionalId =
-                  state.pathParameters['professionalId']!;
-              return ProfessionalDetailPage(
-                  professionalId: professionalId);
-            },
-          ),
-          GoRoute(
-            path: ':professionalId/edit',
-            name: 'professional-edit',
-            builder: (context, state) {
-              final professionalId =
-                  state.pathParameters['professionalId']!;
-              return _ProfessionalEditPage(professionalId: professionalId);
-            },
-          ),
-        ],
-      ),
 
-      // ── My Assignments (Team) ──────────────────────────────
-      GoRoute(
-        path: '/my-assignments',
-        name: 'my-assignments',
-        builder: (context, state) => const MyAssignmentsPage(),
-      ),
-
-      // ── Team Assignments ──────────────────────────────────
-      GoRoute(
-        path: '/assignments',
-        name: 'assignments',
-        builder: (context, state) => const AssignmentListPage(),
-        routes: [
+          // ── My Assignments (Team) ──────────────────────────────
           GoRoute(
-            path: 'create',
-            name: 'assignment-create',
-            builder: (context, state) =>
-                const TeamAssignmentPage(),
+            path: '/my-assignments',
+            name: 'my-assignments',
+            builder: (context, state) => const MyAssignmentsPage(),
           ),
+
+          // ── Team Assignments ──────────────────────────────────
           GoRoute(
-            path: ':assignmentId/edit',
-            name: 'assignment-edit',
-            builder: (context, state) =>
-                const TeamAssignmentPage(),
+            path: '/assignments',
+            name: 'assignments',
+            builder: (context, state) => const AssignmentListPage(),
+            routes: [
+              GoRoute(
+                path: 'create',
+                name: 'assignment-create',
+                builder: (context, state) =>
+                    const TeamAssignmentPage(),
+              ),
+              GoRoute(
+                path: ':assignmentId/edit',
+                name: 'assignment-edit',
+                builder: (context, state) =>
+                    const TeamAssignmentPage(),
+              ),
+            ],
           ),
-        ],
-      ),
 
-      // ── Audit Logs ────────────────────────────────────────
-      GoRoute(
-        path: '/audit-logs',
-        name: 'audit-logs',
-        builder: (context, state) => const AuditListPage(),
-      ),
-
-      // ── Notifications ─────────────────────────────────────
-      GoRoute(
-        path: '/notifications',
-        name: 'notifications',
-        builder: (context, state) => const NotificationListPage(),
-      ),
-
-      // ── User Management (Admin Only) ──────────────────────
-      GoRoute(
-        path: '/users',
-        name: 'users',
-        builder: (context, state) => const UserListPage(),
-        routes: [
+          // ── Audit Logs ────────────────────────────────────────
           GoRoute(
-            path: 'create',
-            name: 'user-create',
-            builder: (context, state) => const UserFormPage(),
+            path: '/audit-logs',
+            name: 'audit-logs',
+            builder: (context, state) => const AuditListPage(),
           ),
+
+          // ── Notifications ─────────────────────────────────────
           GoRoute(
-            path: ':userId/edit',
-            name: 'user-edit',
-            builder: (context, state) {
-              final userId =
-                  state.pathParameters['userId']!;
-              return UserFormPage(userId: userId);
-            },
+            path: '/notifications',
+            name: 'notifications',
+            builder: (context, state) => const NotificationListPage(),
+          ),
+
+          // ── User Management (Admin Only) ──────────────────────
+          GoRoute(
+            path: '/users',
+            name: 'users',
+            builder: (context, state) => const UserListPage(),
+            routes: [
+              GoRoute(
+                path: 'create',
+                name: 'user-create',
+                builder: (context, state) => const UserFormPage(),
+              ),
+              GoRoute(
+                path: ':userId/edit',
+                name: 'user-edit',
+                builder: (context, state) {
+                  final userId =
+                      state.pathParameters['userId']!;
+                  return UserFormPage(userId: userId);
+                },
+              ),
+            ],
           ),
         ],
       ),

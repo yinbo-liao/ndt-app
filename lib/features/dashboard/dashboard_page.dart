@@ -20,6 +20,23 @@ class DashboardPage extends ConsumerStatefulWidget {
 
 class _DashboardPageState extends ConsumerState<DashboardPage> {
   int _selectedTab = 0;
+  bool _initialized = false;
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (!_initialized) {
+      _initialized = true;
+      // Support ?view=tables to pre-select the admin Tables tab via the
+      // persistent bottom nav bar provided by AppShell.
+      final viewParam = GoRouterState.of(context).uri.queryParameters['view'];
+      if (viewParam == 'tables') {
+        _selectedTab = 0;
+      } else if (viewParam == 'home') {
+        _selectedTab = 1;
+      }
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -136,26 +153,6 @@ class _DashboardPageState extends ConsumerState<DashboardPage> {
         ],
       ),
       body: IndexedStack(index: tabIndex, children: tabs),
-      bottomNavigationBar: BottomNavigationBar(
-        currentIndex: tabIndex,
-        onTap: (i) => setState(() => _selectedTab = i),
-        selectedItemColor: const Color(0xFF1A56DB),
-        items: [
-          if (isAdmin)
-            const BottomNavigationBarItem(
-              icon: Icon(Icons.grid_view),
-              label: 'Tables',
-            ),
-          const BottomNavigationBarItem(
-            icon: Icon(Icons.home),
-            label: 'Home',
-          ),
-          const BottomNavigationBarItem(
-            icon: Icon(Icons.assessment),
-            label: 'Reports',
-          ),
-        ],
-      ),
     );
   }
 
