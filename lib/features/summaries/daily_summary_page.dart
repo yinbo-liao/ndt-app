@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 import '../../data/models/project_model.dart';
+import '../../data/models/summary_model.dart';
 import '../../data/repositories/project_repository.dart';
 import '../../widgets/common/loading_indicator.dart';
 import '../../widgets/common/error_widget.dart';
@@ -106,8 +107,19 @@ class _DailySummaryPageState extends ConsumerState<DailySummaryPage> {
               : summaryAsync == null
                   ? _buildProjectSelector()
                   : summaryAsync.when(
-                      data: (summary) => _buildContent(
-                          context, summary, selectedDate, isAdmin),
+                      data: (summary) {
+                        if (summary == null) {
+                          return Center(
+                            child: Padding(
+                              padding: const EdgeInsets.all(40),
+                              child: Text('No data for ${DateFormat('MMM dd, yyyy').format(selectedDate)}',
+                                  style: TextStyle(color: Colors.grey[500])),
+                            ),
+                          );
+                        }
+                        return _buildContent(
+                            context, summary, selectedDate, isAdmin);
+                      },
                       loading: () => const LoadingIndicator(
                           message: 'Loading summary...'),
                       error: (error, st) => AppErrorWidget(
@@ -132,7 +144,6 @@ class _DailySummaryPageState extends ConsumerState<DailySummaryPage> {
               style: TextStyle(color: Colors.grey[600])),
           const SizedBox(height: 16),
           DropdownButtonFormField<String>(
-            key: ValueKey(_selectedProjectId),
             initialValue: _selectedProjectId,
             decoration: const InputDecoration(
               labelText: 'Project',
@@ -152,7 +163,7 @@ class _DailySummaryPageState extends ConsumerState<DailySummaryPage> {
     );
   }
 
-  Widget _buildContent(BuildContext context, dynamic summary,
+  Widget _buildContent(BuildContext context, DailyProjectSummary summary,
       DateTime selectedDate, bool isAdmin) {
     return SingleChildScrollView(
       padding: const EdgeInsets.all(16),
@@ -162,7 +173,6 @@ class _DailySummaryPageState extends ConsumerState<DailySummaryPage> {
           // Project selector
           if (_projects.isNotEmpty) ...[
             DropdownButtonFormField<String>(
-              key: ValueKey(_selectedProjectId),
               initialValue: _selectedProjectId,
               decoration: const InputDecoration(
                 labelText: 'Select Project',
@@ -183,53 +193,44 @@ class _DailySummaryPageState extends ConsumerState<DailySummaryPage> {
             DateFormat('EEEE, MMM dd, yyyy').format(selectedDate),
             style: Theme.of(context).textTheme.headlineSmall,
           ),
-          if (summary != null) ...[
-            const SizedBox(height: 8),
-            Text(summary.projectName,
-                style: Theme.of(context).textTheme.titleMedium?.copyWith(color: Colors.grey[600])),
-            const SizedBox(height: 24),
-            GridView.count(
-              shrinkWrap: true,
-              physics: const NeverScrollableScrollPhysics(),
-              crossAxisCount: 2,
-              childAspectRatio: 1.4,
-              crossAxisSpacing: 12,
-              mainAxisSpacing: 12,
-              children: [
-                SummaryCard(title: 'Total Teams', value: summary.totalTeams.toString(), icon: Icons.groups, color: Colors.blue),
-                SummaryCard(title: 'Personnel', value: summary.totalPersonnel.toString(), icon: Icons.people, color: Colors.green),
-                SummaryCard(title: 'Completed', value: summary.completedTests.toString(), icon: Icons.check_circle, color: Colors.teal),
-                SummaryCard(title: 'In Progress', value: summary.inProgressTests.toString(), icon: Icons.pending, color: Colors.orange),
-                SummaryCard(title: 'Rejected', value: summary.rejectedTests.toString(), icon: Icons.cancel, color: Colors.red),
-                SummaryCard(title: 'Test Length', value: '${summary.totalTestLength.toStringAsFixed(1)}m', icon: Icons.straighten, color: Colors.purple),
-              ],
-            ),
-            const SizedBox(height: 24),
-            ShiftSummaryView(summary: summary),
-            const SizedBox(height: 24),
-            if (summary.locations.isNotEmpty)
-              Card(
-                child: Padding(
-                  padding: const EdgeInsets.all(16),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text('Job Locations', style: Theme.of(context).textTheme.titleLarge),
-                      const SizedBox(height: 12),
-                      Wrap(
-                        spacing: 8, runSpacing: 8,
-                        children: summary.locations.map((l) => Chip(label: Text(l), avatar: const Icon(Icons.location_on, size: 18))).toList(),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-          ] else
-            Center(
+          const SizedBox(height: 8),
+          Text(summary.projectName,
+              style: Theme.of(context).textTheme.titleMedium?.copyWith(color: Colors.grey[600])),
+          const SizedBox(height: 24),
+          GridView.count(
+            shrinkWrap: true,
+            physics: const NeverScrollableScrollPhysics(),
+            crossAxisCount: 2,
+            childAspectRatio: 1.4,
+            crossAxisSpacing: 12,
+            mainAxisSpacing: 12,
+            children: [
+              SummaryCard(title: 'Total Teams', value: summary.totalTeams.toString(), icon: Icons.groups, color: Colors.blue),
+              SummaryCard(title: 'Personnel', value: summary.totalPersonnel.toString(), icon: Icons.people, color: Colors.green),
+              SummaryCard(title: 'Completed', value: summary.completedTests.toString(), icon: Icons.check_circle, color: Colors.teal),
+              SummaryCard(title: 'In Progress', value: summary.inProgressTests.toString(), icon: Icons.pending, color: Colors.orange),
+              SummaryCard(title: 'Rejected', value: summary.rejectedTests.toString(), icon: Icons.cancel, color: Colors.red),
+              SummaryCard(title: 'Test Length', value: '${summary.totalTestLength.toStringAsFixed(1)}m', icon: Icons.straighten, color: Colors.purple),
+            ],
+          ),
+          const SizedBox(height: 24),
+          ShiftSummaryView(summary: summary),
+          const SizedBox(height: 24),
+          if (summary.locations.isNotEmpty)
+            Card(
               child: Padding(
-                padding: const EdgeInsets.all(40),
-                child: Text('No data for ${DateFormat('MMM dd, yyyy').format(selectedDate)}',
-                    style: TextStyle(color: Colors.grey[500])),
+                padding: const EdgeInsets.all(16),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text('Job Locations', style: Theme.of(context).textTheme.titleLarge),
+                    const SizedBox(height: 12),
+                    Wrap(
+                      spacing: 8, runSpacing: 8,
+                      children: summary.locations.map((l) => Chip(label: Text(l), avatar: const Icon(Icons.location_on, size: 18))).toList(),
+                    ),
+                  ],
+                ),
               ),
             ),
         ],
