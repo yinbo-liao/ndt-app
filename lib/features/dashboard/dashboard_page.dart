@@ -193,68 +193,118 @@ class _DashboardPageState extends ConsumerState<DashboardPage> {
 
   List<Widget> _tableCards(BuildContext context) {
     const tables = [
-      _TableInfo('NDT Companies', Icons.business, '/companies', 'ndt_companies'),
-      _TableInfo('Users', Icons.people, '/users', 'users'),
-      _TableInfo('Professional Register', Icons.verified_user, '/professional-register', 'ndt_contractor_register'),
-      _TableInfo('Projects', Icons.apartment, '/projects', 'projects'),
-      _TableInfo('NDT Planning', Icons.assignment_turned_in, '/planning', 'project_ndt_planning'),
-      _TableInfo('Deployments', Icons.engineering, '/deployments', 'ndt_team_deployments'),
-      _TableInfo('Assignments', Icons.assignment_ind, '/assignments', 'ndt_team_assignments'),
+      _TableInfo('NDT Companies', Icons.business, '/companies', 'ndt_companies', createRoute: '/companies/create'),
+      _TableInfo('Projects', Icons.apartment, '/projects', 'projects', createRoute: '/projects/create'),
+      _TableInfo('Contractor Register', Icons.verified_user, '/professional-register', 'ndt_contractor_register', createRoute: '/professional-register/create'),
+      _TableInfo('NDT Planning (RFI)', Icons.assignment_turned_in, '/planning', 'project_ndt_planning', createRoute: '/planning/create'),
+      _TableInfo('Deployments', Icons.engineering, '/deployments', 'ndt_team_deployments', createRoute: '/deployments/create'),
+      _TableInfo('Professional Register', Icons.person_search, '/professionals', 'ndt_professional_register', createRoute: '/professionals/create'),
+      _TableInfo('Team Assignments', Icons.assignment_ind, '/assignments', 'ndt_team_assignments', createRoute: '/assignments/create'),
+      _TableInfo('Reports Hub', Icons.assessment, '/reports', 'reports'), // popup sub-menu
       _TableInfo('Audit Logs', Icons.history, '/audit-logs', 'audit_logs'),
       _TableInfo('Notifications', Icons.notifications, '/notifications', 'notifications'),
+      _TableInfo('Users', Icons.people, '/users', 'users', createRoute: '/users/create'),
+      _TableInfo('My Assignments', Icons.person, '/my-assignments', 'ndt_team_assignments'),
     ];
     return tables.map((t) => _tableCard(context, t)).toList();
   }
 
   Widget _tableCard(BuildContext context, _TableInfo table) {
     final width = (MediaQuery.of(context).size.width - 34) / 2;
+    final isReports = table.route == '/reports';
+    final hasCreate = table.createRoute != null;
+
     return SizedBox(
       width: width,
       child: Card(
         elevation: 1,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-        child: InkWell(
-          onTap: () => GoRouter.of(context).go(table.route),
-          borderRadius: BorderRadius.circular(12),
-          child: Padding(
-            padding: const EdgeInsets.all(14),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Container(
-                  padding: const EdgeInsets.all(10),
-                  decoration: BoxDecoration(
-                    color: const Color(0xFF1A56DB).withAlpha(20),
-                    borderRadius: BorderRadius.circular(10),
-                  ),
-                  child: Icon(table.icon, color: const Color(0xFF1A56DB), size: 28),
+        child: Padding(
+          padding: const EdgeInsets.all(14),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Container(
+                padding: const EdgeInsets.all(10),
+                decoration: BoxDecoration(
+                  color: const Color(0xFF1A56DB).withAlpha(20),
+                  borderRadius: BorderRadius.circular(10),
                 ),
-                const SizedBox(height: 10),
-                Text(table.label, textAlign: TextAlign.center,
-                    style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 13)),
-                const SizedBox(height: 2),
-                Text(table.tableName, style: TextStyle(fontSize: 10, color: Colors.grey[400])),
-                const SizedBox(height: 8),
-                FilledButton.icon(
-                  onPressed: () => GoRouter.of(context).go(table.route),
-                  icon: const Icon(Icons.visibility, size: 16),
-                  label: const Text('View', style: TextStyle(fontSize: 12)),
-                  style: FilledButton.styleFrom(
-                    minimumSize: const Size(0, 32),
-                    padding: const EdgeInsets.symmetric(horizontal: 16),
-                    backgroundColor: const Color(0xFF1A56DB),
-                  ),
+                child: Icon(table.icon, color: const Color(0xFF1A56DB), size: 28),
+              ),
+              const SizedBox(height: 8),
+              Text(table.label, textAlign: TextAlign.center,
+                  style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 13)),
+              const SizedBox(height: 2),
+              Text(table.tableName, style: TextStyle(fontSize: 10, color: Colors.grey[400])),
+              const SizedBox(height: 8),
+              if (isReports)
+                _reportsMenuButton(context)
+              else
+                Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    OutlinedButton.icon(
+                      onPressed: () => GoRouter.of(context).go(table.route),
+                      icon: const Icon(Icons.visibility, size: 14),
+                      label: const Text('View', style: TextStyle(fontSize: 11)),
+                      style: OutlinedButton.styleFrom(
+                        minimumSize: const Size(0, 30),
+                        padding: const EdgeInsets.symmetric(horizontal: 8),
+                        side: const BorderSide(color: Color(0xFF1A56DB)),
+                        foregroundColor: const Color(0xFF1A56DB),
+                      ),
+                    ),
+                    if (hasCreate) ...[
+                      const SizedBox(width: 5),
+                      FilledButton.icon(
+                        onPressed: () => GoRouter.of(context).go(table.createRoute!),
+                        icon: const Icon(Icons.add, size: 14),
+                        label: const Text('Add', style: TextStyle(fontSize: 11)),
+                        style: FilledButton.styleFrom(
+                          minimumSize: const Size(0, 30),
+                          padding: const EdgeInsets.symmetric(horizontal: 8),
+                          backgroundColor: const Color(0xFF1A56DB),
+                        ),
+                      ),
+                    ],
+                  ],
                 ),
-              ],
-            ),
+            ],
           ),
         ),
       ),
     );
   }
 
+  Widget _reportsMenuButton(BuildContext context) {
+    return PopupMenuButton<String>(
+      onSelected: (route) => GoRouter.of(context).go(route),
+      offset: const Offset(0, 32),
+      child: FilledButton.icon(
+        onPressed: () {}, // PopupMenuButton handles the tap
+        icon: const Icon(Icons.bar_chart, size: 14),
+        label: const Text('Open', style: TextStyle(fontSize: 11)),
+        style: FilledButton.styleFrom(
+          minimumSize: const Size(0, 30),
+          padding: const EdgeInsets.symmetric(horizontal: 12),
+          backgroundColor: const Color(0xFF1A56DB),
+        ),
+      ),
+      itemBuilder: (_) => const [
+        PopupMenuItem(value: '/reports/daily', child: ListTile(leading: Icon(Icons.calendar_today), title: Text('Daily Summary'), dense: true, contentPadding: EdgeInsets.zero)),
+        PopupMenuItem(value: '/reports/company', child: ListTile(leading: Icon(Icons.business), title: Text('Company Summary'), dense: true, contentPadding: EdgeInsets.zero)),
+        PopupMenuItem(value: '/reports/project-status', child: ListTile(leading: Icon(Icons.assessment), title: Text('Project Status'), dense: true, contentPadding: EdgeInsets.zero)),
+        PopupMenuItem(value: '/reports/charts', child: ListTile(leading: Icon(Icons.trending_up), title: Text('Charts & Trends'), dense: true, contentPadding: EdgeInsets.zero)),
+        PopupMenuItem(value: '/reports/professional', child: ListTile(leading: Icon(Icons.person), title: Text('Professional Summary'), dense: true, contentPadding: EdgeInsets.zero)),
+      ],
+    );
+  }
+
   // ── TAB 1: Home ─────────────────────────────
   Widget _buildHomeTab(BuildContext context, WidgetRef ref, String role, String userName) {
+    final isSupervisor = role == AppConstants.roleAdmin || role == AppConstants.roleNdtCompany;
+
     return ListView(
       padding: const EdgeInsets.only(top: 8),
       children: [
@@ -273,6 +323,11 @@ class _DashboardPageState extends ConsumerState<DashboardPage> {
         const SizedBox(height: 8),
         if (role == AppConstants.roleAdmin) _AdminStatsRow(),
         const SizedBox(height: 8),
+        // ── NDT-Supervisor Section (Admin + NDT Company) ──
+        if (isSupervisor) ...[
+          _buildSupervisorSection(),
+          const SizedBox(height: 8),
+        ],
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
           child: Text('Quick Actions',
@@ -281,6 +336,99 @@ class _DashboardPageState extends ConsumerState<DashboardPage> {
         const SizedBox(height: 4),
         ..._navItemsForRole(role, context),
       ],
+    );
+  }
+
+  // ── NDT-Supervisor Quick Actions ─────────────────────
+  Widget _buildSupervisorSection() {
+    return Card(
+      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+      elevation: 2,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      color: const Color(0xFFFFF8E1), // amber tint background
+      child: Padding(
+        padding: const EdgeInsets.all(14),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(6),
+                  decoration: BoxDecoration(
+                    color: Colors.orange.shade100,
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: const Icon(Icons.bolt, color: Colors.orange, size: 20),
+                ),
+                const SizedBox(width: 10),
+                const Expanded(
+                  child: Text('NDT-Supervisor Quick Actions',
+                      style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14, color: Color(0xFFE65100))),
+                ),
+              ],
+            ),
+            const SizedBox(height: 12),
+            Row(
+              children: [
+                Expanded(
+                  child: _supervisorActionBtn(
+                    Icons.person_search,
+                    'Professional\nRegister',
+                    '/professionals/create',
+                    Colors.deepOrange,
+                  ),
+                ),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: _supervisorActionBtn(
+                    Icons.assignment_ind,
+                    'Team\nAssignment',
+                    '/assignments/create',
+                    Colors.amber.shade800,
+                  ),
+                ),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: _supervisorActionBtn(
+                    Icons.verified_user,
+                    'Contractor\nRegister',
+                    '/professional-register/create',
+                    Colors.brown,
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _supervisorActionBtn(IconData icon, String label, String route, Color color) {
+    return InkWell(
+      onTap: () => GoRouter.of(context).go(route),
+      borderRadius: BorderRadius.circular(10),
+      child: Container(
+        padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 6),
+        decoration: BoxDecoration(
+          color: color.withAlpha(25),
+          borderRadius: BorderRadius.circular(10),
+          border: Border.all(color: color.withAlpha(60)),
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(icon, color: color, size: 24),
+            const SizedBox(height: 6),
+            Text(label, textAlign: TextAlign.center,
+                style: TextStyle(fontSize: 10, fontWeight: FontWeight.w600, color: color,
+                    height: 1.3)),
+            const SizedBox(height: 2),
+            Icon(Icons.add_circle, size: 16, color: color),
+          ],
+        ),
+      ),
     );
   }
 
@@ -298,11 +446,12 @@ class _DashboardPageState extends ConsumerState<DashboardPage> {
       ]);
     } else if (role == AppConstants.roleNdtCompany) {
       items.addAll([
-        _NavItem(Icons.groups, 'Professional Register', 'Technician certificates & team assignments', '/professional-register'),
-        _NavItem(Icons.person_search, 'NDT Professionals', 'Manage NDT professional register', '/professionals'),
+        _NavItem(Icons.assignment, 'NDT RFI Register', 'View and manage NDT RFIs for your projects', '/planning'),
         _NavItem(Icons.engineering, 'NDT Deployment Review', 'View and update team deployments', '/deployments'),
-        _NavItem(Icons.assignment, 'NDT RFI Register', 'View and manage NDT RFIs', '/planning'),
+        _NavItem(Icons.groups, 'Contractor Register', 'Manage technician certificates', '/professional-register'),
+        _NavItem(Icons.person_search, 'NDT Professionals', 'Manage NDT professional register', '/professionals'),
         _NavItem(Icons.assessment, 'Reports', 'Daily summaries and performance charts', '/reports'),
+        _NavItem(Icons.assignment_ind, 'Team Assignments', 'Manage team-project assignments', '/assignments'),
       ]);
     } else {
       items.addAll([
@@ -414,7 +563,8 @@ class _TableInfo {
   final IconData icon;
   final String route;
   final String tableName;
-  const _TableInfo(this.label, this.icon, this.route, this.tableName);
+  final String? createRoute; // null = no create form (e.g. audit logs, notifications)
+  const _TableInfo(this.label, this.icon, this.route, this.tableName, {this.createRoute});
 }
 
 class _NavItem {
