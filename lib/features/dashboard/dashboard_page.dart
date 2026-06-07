@@ -8,6 +8,25 @@ import '../../widgets/common/change_password_dialog.dart';
 import '../auth/auth_controller.dart';
 import '../projects/project_controller.dart';
 import '../user_update/user_controller.dart';
+import '../companies/company_controller.dart';
+import '../contractor_register/contractor_controller.dart';
+import '../ndt_planning/planning_controller.dart';
+import '../deployments/deployment_controller.dart';
+import '../professional_register/professional_controller.dart';
+import '../team_management/team_controller.dart';
+import '../audit_logs/audit_controller.dart';
+import '../notifications/notification_controller.dart';
+import '../../data/models/company_model.dart';
+import '../../data/models/user_model.dart';
+import '../../data/models/contractor_model.dart';
+import '../../data/models/project_model.dart';
+import '../../data/models/planning_model.dart';
+import '../../data/models/deployment_model.dart';
+import '../../data/models/assignment_model.dart';
+import '../../data/models/professional_model.dart';
+import '../../data/models/professional_assignment_model.dart';
+import '../../data/models/audit_log_model.dart';
+import '../../data/models/notification_model.dart';
 
 /// Root dashboard with bottom tab navigation and user status in AppBar:
 /// [Tables] (admin) | [Home] | [Reports]
@@ -200,7 +219,8 @@ class _DashboardPageState extends ConsumerState<DashboardPage> {
       _TableInfo('Deployments', Icons.engineering, '/deployments', 'ndt_team_deployments', createRoute: '/deployments/create'),
       _TableInfo('Professional Register', Icons.person_search, '/professionals', 'ndt_professional_register', createRoute: '/professionals/create'),
       _TableInfo('Team Assignments', Icons.assignment_ind, '/assignments', 'ndt_team_assignments', createRoute: '/assignments/create'),
-      _TableInfo('Reports Hub', Icons.assessment, '/reports', 'reports'), // popup sub-menu
+      _TableInfo('Professional Assignments', Icons.link, '/professional-assignments', 'ndt_professional_assignments'),
+      _TableInfo('Reports Hub', Icons.assessment, '/reports', 'reports'),
       _TableInfo('Audit Logs', Icons.history, '/audit-logs', 'audit_logs'),
       _TableInfo('Notifications', Icons.notifications, '/notifications', 'notifications'),
       _TableInfo('Users', Icons.people, '/users', 'users', createRoute: '/users/create'),
@@ -304,10 +324,12 @@ class _DashboardPageState extends ConsumerState<DashboardPage> {
   // ── TAB 1: Home ─────────────────────────────
   Widget _buildHomeTab(BuildContext context, WidgetRef ref, String role, String userName) {
     final isSupervisor = role == AppConstants.roleAdmin || role == AppConstants.roleNdtCompany;
+    final isAdmin = role == AppConstants.roleAdmin;
 
     return ListView(
-      padding: const EdgeInsets.only(top: 8),
+      padding: const EdgeInsets.only(top: 8, bottom: 32),
       children: [
+        // Welcome header
         Padding(
           padding: const EdgeInsets.all(16),
           child: Column(
@@ -320,14 +342,23 @@ class _DashboardPageState extends ConsumerState<DashboardPage> {
             ],
           ),
         ),
-        const SizedBox(height: 8),
-        if (role == AppConstants.roleAdmin) _AdminStatsRow(),
-        const SizedBox(height: 8),
-        // ── NDT-Supervisor Section (Admin + NDT Company) ──
+        // ── NDT-Supervisor Quick Actions ──
         if (isSupervisor) ...[
           _buildSupervisorSection(),
           const SizedBox(height: 8),
         ],
+        // ── Admin: All Database Tables (expandable inline data) ──
+        if (isAdmin) ...[
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+            child: Text('Database Tables',
+                style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold)),
+          ),
+          const SizedBox(height: 4),
+          ..._adminTableDefs.map((def) => _AdminTableSection(def: def)),
+          const SizedBox(height: 8),
+        ],
+        // ── Quick Actions nav ──
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
           child: Text('Quick Actions',
@@ -338,6 +369,104 @@ class _DashboardPageState extends ConsumerState<DashboardPage> {
       ],
     );
   }
+
+  // ── Admin Home: table definitions for expandable sections ──
+  List<_TableDef> get _adminTableDefs => [
+    _TableDef('NDT Companies', Icons.business, '/companies',
+        (ctx) => _AsyncMiniTable<CompanyModel>(
+          provider: allCompaniesProvider,
+          columns: const ['Name', 'Address'],
+          rowBuilder: (c, i) => [DataCell(Text(c.name)), DataCell(Text(c.address ?? ''))],
+          emptyMsg: 'No companies',
+        )),
+    _TableDef('Users', Icons.people, '/users',
+        (ctx) => _AsyncMiniTable<UserModel>(
+          provider: usersProvider,
+          columns: const ['Full Name', 'Email', 'Role'],
+          rowBuilder: (u, i) => [DataCell(Text(u.fullName)), DataCell(Text(u.email)), DataCell(Text(u.role))],
+          emptyMsg: 'No users',
+        )),
+    _TableDef('Contractor Register', Icons.verified_user, '/professional-register',
+        (ctx) => _AsyncMiniTable<ContractorModel>(
+          provider: contractorsProvider,
+          columns: const ['Technician', 'Type', 'Status'],
+          rowBuilder: (c, i) => [DataCell(Text(c.technicianName ?? c.typeOfNdt)), DataCell(Text(c.typeOfNdtCertificate)), DataCell(Text(c.validationStatus))],
+          emptyMsg: 'No contractors',
+        )),
+    _TableDef('Projects', Icons.apartment, '/projects',
+        (ctx) => _AsyncMiniTable<ProjectModel>(
+          provider: projectsProvider,
+          columns: const ['Name', 'Code', 'Client'],
+          rowBuilder: (p, i) => [DataCell(Text(p.projectName)), DataCell(Text(p.projectCode)), DataCell(Text(p.clientName ?? ''))],
+          emptyMsg: 'No projects',
+        )),
+    _TableDef('NDT Planning (RFI)', Icons.assignment_turned_in, '/planning',
+        (ctx) => _AsyncMiniTable<PlanningModel>(
+          provider: planningByCompanyProvider,
+          columns: const ['Task', 'Status', 'Start Date'],
+          rowBuilder: (p, i) => [
+            DataCell(Text(p.ndtCompanyTask)),
+            DataCell(Text(p.testingStatus)),
+            DataCell(Text(p.plannedStartDate?.toIso8601String().substring(0, 10) ?? '')),
+          ],
+          emptyMsg: 'No planning entries',
+        )),
+    _TableDef('Deployments', Icons.engineering, '/deployments',
+        (ctx) => _AsyncMiniTable<DeploymentModel>(
+          provider: allDeploymentsProvider,
+          columns: const ['Date', 'Location', 'Status'],
+          rowBuilder: (d, i) => [
+            DataCell(Text(d.deploymentDate.toIso8601String().substring(0, 10))),
+            DataCell(Text(d.jobLocation)),
+            DataCell(Text(d.testingStatus.name)),
+          ],
+          emptyMsg: 'No deployments',
+        )),
+    _TableDef('Team Assignments', Icons.assignment_ind, '/assignments',
+        (ctx) => _AsyncMiniTable<AssignmentModel>(
+          provider: allTeamAssignmentsProvider,
+          columns: const ['User', 'Role', 'Status'],
+          rowBuilder: (a, i) => [DataCell(Text(a.userId.length > 8 ? a.userId.substring(0, 8) : a.userId)), DataCell(Text(a.assignedRole.name)), DataCell(Text(a.status.name))],
+          emptyMsg: 'No assignments',
+        )),
+    _TableDef('Professional Register', Icons.person_search, '/professionals',
+        (ctx) => _AsyncMiniTable<ProfessionalModel>(
+          provider: professionalsProvider,
+          columns: const ['Name', 'Sector', 'Status'],
+          rowBuilder: (p, i) => [DataCell(Text(p.name)), DataCell(Text(p.workingSector)), DataCell(Text(p.certificateStatus))],
+          emptyMsg: 'No professionals',
+        )),
+    _TableDef('Professional Assignments', Icons.link, '/professional-assignments',
+        (ctx) => _AsyncMiniTable<ProfessionalAssignmentModel>(
+          provider: allProfessionalAssignmentsProvider,
+          columns: const ['Professional', 'Planning', 'Role', 'Status'],
+          rowBuilder: (a, i) => [
+            DataCell(Text(a.professionalId.length > 8 ? a.professionalId.substring(0, 8) : a.professionalId)),
+            DataCell(Text(a.planningId.length > 8 ? a.planningId.substring(0, 8) : a.planningId)),
+            DataCell(Text(a.assignedRole)),
+            DataCell(Text(a.status)),
+          ],
+          emptyMsg: 'No professional assignments',
+        )),
+    _TableDef('Audit Logs', Icons.history, '/audit-logs',
+        (ctx) => _AsyncMiniTable<AuditLogModel>(
+          provider: auditLogsProvider,
+          columns: const ['Table', 'Action', 'Timestamp'],
+          rowBuilder: (a, i) => [
+            DataCell(Text(a.tableName)),
+            DataCell(Text(a.action)),
+            DataCell(Text((a.changedAt?.toIso8601String() ?? '').length > 16 ? (a.changedAt!.toIso8601String()).substring(0, 16) : (a.changedAt?.toIso8601String() ?? ''))),
+          ],
+          emptyMsg: 'No audit logs',
+        )),
+    _TableDef('Notifications', Icons.notifications, '/notifications',
+        (ctx) => _AsyncMiniTable<NotificationModel>(
+          provider: allNotificationsProvider,
+          columns: const ['Title', 'Type', 'Read'],
+          rowBuilder: (n, i) => [DataCell(Text(n.title)), DataCell(Text(n.type ?? '')), DataCell(Icon(n.read ? Icons.check_circle : Icons.circle, size: 14))],
+          emptyMsg: 'No notifications',
+        )),
+  ];
 
   // ── NDT-Supervisor Quick Actions ─────────────────────
   Widget _buildSupervisorSection() {
@@ -573,4 +702,153 @@ class _NavItem {
   final String subtitle;
   final String route;
   const _NavItem(this.icon, this.title, this.subtitle, this.route);
+}
+
+// ────────────────────────────────────────────────────────────────
+// Admin Home Tab — expandable data sections
+// ────────────────────────────────────────────────────────────────
+
+/// Metadata for one database table section in the admin Home tab.
+class _TableDef {
+  final String label;
+  final IconData icon;
+  final String route;
+  final Widget Function(BuildContext ctx) dataBuilder;
+  const _TableDef(this.label, this.icon, this.route, this.dataBuilder);
+}
+
+/// Expandable section that shows top-5 rows of one database table.
+///
+/// Data is fetched lazily — the provider inside [dataBuilder] is only
+/// watched when the tile is expanded, avoiding 11 simultaneous queries.
+class _AdminTableSection extends StatefulWidget {
+  final _TableDef def;
+  const _AdminTableSection({required this.def});
+
+  @override
+  State<_AdminTableSection> createState() => _AdminTableSectionState();
+}
+
+class _AdminTableSectionState extends State<_AdminTableSection> {
+  bool _expanded = false;
+
+  @override
+  Widget build(BuildContext context) {
+    return Card(
+      margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 3),
+      elevation: 1,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+      child: ExpansionTile(
+        leading: Container(
+          padding: const EdgeInsets.all(8),
+          decoration: BoxDecoration(
+            color: const Color(0xFF1A56DB).withAlpha(20),
+            borderRadius: BorderRadius.circular(8),
+          ),
+          child: Icon(widget.def.icon, color: const Color(0xFF1A56DB), size: 22),
+        ),
+        title: Text(widget.def.label,
+            style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 14)),
+        trailing: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            if (!_expanded)
+              TextButton(
+                onPressed: () => GoRouter.of(context).go(widget.def.route),
+                child: const Text('View All', style: TextStyle(fontSize: 11)),
+              ),
+            const Icon(Icons.expand_more),
+          ],
+        ),
+        onExpansionChanged: (expanded) {
+          setState(() => _expanded = expanded);
+        },
+        children: [
+          if (_expanded) widget.def.dataBuilder(context),
+          if (_expanded)
+            Padding(
+              padding: const EdgeInsets.only(left: 16, right: 16, bottom: 8, top: 4),
+              child: Align(
+                alignment: Alignment.centerRight,
+                child: TextButton.icon(
+                  onPressed: () => GoRouter.of(context).go(widget.def.route),
+                  icon: const Icon(Icons.open_in_new, size: 14),
+                  label: const Text('View All', style: TextStyle(fontSize: 12)),
+                ),
+              ),
+            ),
+        ],
+      ),
+    );
+  }
+}
+
+/// Mini data table that watches a Riverpod [provider] and shows top-5 rows.
+///
+/// Used inside [_AdminTableSection] for lazy-loaded inline previews.
+class _AsyncMiniTable<T> extends ConsumerWidget {
+  final ProviderListenable provider;
+  final List<String> columns;
+  final List<DataCell> Function(T item, int index) rowBuilder;
+  final String emptyMsg;
+
+  const _AsyncMiniTable({
+    required this.provider,
+    required this.columns,
+    required this.rowBuilder,
+    required this.emptyMsg,
+  });
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final async = ref.watch(provider) as AsyncValue<List<T>>;
+    return async.when(
+      data: (items) {
+        if (items.isEmpty) {
+          return Padding(
+            padding: const EdgeInsets.all(16),
+            child: Center(
+              child: Text(emptyMsg,
+                  style: TextStyle(color: Colors.grey[400], fontSize: 13)),
+            ),
+          );
+        }
+        final top = items.take(5).toList();
+        return SingleChildScrollView(
+          scrollDirection: Axis.horizontal,
+          padding: const EdgeInsets.symmetric(horizontal: 12),
+          child: DataTable(
+            headingRowColor: WidgetStatePropertyAll(
+                const Color(0xFF1A56DB).withAlpha(15)),
+            columnSpacing: 16,
+            columns: columns
+                .map((c) => DataColumn(
+                    label: Text(c,
+                        style: const TextStyle(
+                            fontWeight: FontWeight.bold,
+                            fontSize: 11,
+                            color: Color(0xFF1A56DB)))))
+                .toList(),
+            rows: top.asMap().entries.map((e) {
+              return DataRow(
+                  cells: rowBuilder(e.value, e.key));
+            }).toList(),
+          ),
+        );
+      },
+      loading: () => const Padding(
+        padding: EdgeInsets.all(20),
+        child: Center(child: SizedBox(
+            height: 24, width: 24,
+            child: CircularProgressIndicator(strokeWidth: 2))),
+      ),
+      error: (e, _) => Padding(
+        padding: const EdgeInsets.all(16),
+        child: Center(
+          child: Text('Error: $e',
+              style: const TextStyle(color: Colors.red, fontSize: 12)),
+        ),
+      ),
+    );
+  }
 }

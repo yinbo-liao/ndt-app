@@ -67,6 +67,19 @@ class AssignmentRepository {
         .toList();
   }
 
+  /// Get all assignments (admin only — no company filter).
+  Future<List<AssignmentModel>> getAll() async {
+    final response = await _client
+        .from(SupabaseClientWrapper.tblAssignments)
+        .select('*, users!user_id(full_name, email)')
+        .order('created_at', ascending: false)
+        .limit(200);
+
+    return SupabaseClientWrapper.safeList(response)
+        .map((json) => AssignmentModel.fromJson(json))
+        .toList();
+  }
+
   /// Get a single assignment by ID.
   Future<AssignmentModel?> getById(String id) async {
     final response = await _client

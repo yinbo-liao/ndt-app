@@ -23,6 +23,19 @@ class NotificationRepository {
         .toList();
   }
 
+  /// Get all notifications (admin only — no user filter).
+  Future<List<NotificationModel>> getAll() async {
+    final response = await _client
+        .from(SupabaseClientWrapper.tblNotifications)
+        .select()
+        .order('created_at', ascending: false)
+        .limit(200);
+
+    return SupabaseClientWrapper.safeList(response)
+        .map((json) => NotificationModel.fromJson(json))
+        .toList();
+  }
+
   /// Mark a notification as read.
   Future<void> markRead(String id) async {
     await _client

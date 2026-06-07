@@ -45,6 +45,7 @@ import '../../features/ndt_planning/planning_detail_page.dart';
 import '../../features/companies/company_detail_page.dart';
 import '../../features/team_management/my_assignments_page.dart';
 import '../../features/team_management/team_assignment_page.dart';
+import '../../features/team_management/professional_assignment_list_page.dart';
 
 /// Provides the configured [GoRouter] instance.
 ///
@@ -53,7 +54,7 @@ import '../../features/team_management/team_assignment_page.dart';
 final appRouterProvider = Provider<GoRouter>((ref) {
   // Role-based route access map.
   // 'admin' = admin only, 'company' = admin + ndt_company, 'any' = authenticated.
-  const adminOnly = ['/users', '/companies', '/audit-logs'];
+  const adminOnly = ['/users', '/companies', '/audit-logs', '/professional-assignments'];
   const companyPlus = ['/professional-register', '/professionals'];
 
   return GoRouter(
@@ -408,6 +409,14 @@ final appRouterProvider = Provider<GoRouter>((ref) {
             path: '/audit-logs',
             name: 'audit-logs',
             builder: (context, state) => const AuditListPage(),
+          ),
+
+          // ── Professional Assignments (Admin Only) ──────────────
+          GoRoute(
+            path: '/professional-assignments',
+            name: 'professional-assignments',
+            builder: (context, state) =>
+                const ProfessionalAssignmentListPage(),
           ),
 
           // ── Notifications ─────────────────────────────────────

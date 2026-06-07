@@ -56,6 +56,20 @@ class ProfessionalAssignmentRepository {
         .toList();
   }
 
+  /// Get all professional assignments (admin only — no company filter).
+  Future<List<ProfessionalAssignmentModel>> getAll() async {
+    final response = await _client
+        .from(SupabaseClientWrapper.tblProfessionalAssignments)
+        .select()
+        .order('assigned_at', ascending: false)
+        .limit(200);
+
+    return SupabaseClientWrapper.safeList(response)
+        .map((json) =>
+            ProfessionalAssignmentModel.fromJson(json))
+        .toList();
+  }
+
   /// Get a single assignment by ID.
   Future<ProfessionalAssignmentModel?> getById(
       String id) async {

@@ -63,6 +63,13 @@ final selectedDeploymentDateProvider =
 final selectedShiftFilterProvider =
     StateProvider<ShiftType?>((ref) => null);
 
+/// Fetch all deployments (admin only — no company filter).
+final allDeploymentsProvider =
+    FutureProvider.autoDispose<List<DeploymentModel>>((ref) async {
+  final repository = ref.watch(deploymentRepositoryProvider);
+  return repository.getAll();
+});
+
 /// Fetch a single deployment by ID.
 final deploymentDetailProvider = FutureProvider.autoDispose
     .family<DeploymentModel?, String>((ref, deploymentId) async {

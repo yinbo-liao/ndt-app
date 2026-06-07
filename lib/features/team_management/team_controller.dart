@@ -1,8 +1,10 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../data/models/assignment_model.dart';
+import '../../data/models/professional_assignment_model.dart';
 import '../../data/models/user_model.dart';
 import '../../data/repositories/assignment_repository.dart';
+import '../../data/repositories/professional_assignment_repository.dart';
 import '../../core/services/supabase_client.dart';
 import '../../providers/auth_provider.dart';
 
@@ -49,4 +51,23 @@ final myAssignedProjectsProvider =
 
   final repo = ref.watch(assignmentRepoProvider);
   return repo.getByUser(userId);
+});
+
+/// Professional assignment repository provider.
+final professionalAssignmentRepoProvider =
+    Provider<ProfessionalAssignmentRepository>(
+        (ref) => ProfessionalAssignmentRepository());
+
+/// Fetch all team assignments (admin only — no company filter).
+final allTeamAssignmentsProvider =
+    FutureProvider.autoDispose<List<AssignmentModel>>((ref) async {
+  final repo = ref.watch(assignmentRepoProvider);
+  return repo.getAll();
+});
+
+/// Fetch all professional-to-RFI assignments (admin only).
+final allProfessionalAssignmentsProvider =
+    FutureProvider.autoDispose<List<ProfessionalAssignmentModel>>((ref) async {
+  final repo = ref.watch(professionalAssignmentRepoProvider);
+  return repo.getAll();
 });

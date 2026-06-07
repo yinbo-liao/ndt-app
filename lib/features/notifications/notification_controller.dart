@@ -7,6 +7,13 @@ import '../../providers/auth_provider.dart';
 final notificationRepoProvider =
     Provider<NotificationRepository>((ref) => NotificationRepository());
 
+/// Fetch all notifications (admin only — no user filter).
+final allNotificationsProvider =
+    FutureProvider.autoDispose<List<NotificationModel>>((ref) async {
+  final repo = ref.watch(notificationRepoProvider);
+  return repo.getAll();
+});
+
 /// Fetch notifications for the current user.
 final userNotificationsProvider =
     FutureProvider.autoDispose<List<NotificationModel>>((ref) async {

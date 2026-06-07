@@ -81,6 +81,27 @@ class DeploymentRepository {
         .toList();
   }
 
+  /// Get all non-deleted deployments (admin only — no company filter).
+  Future<List<DeploymentModel>> getAll() async {
+    final response = await _client
+        .from(SupabaseClientWrapper.tblDeployments)
+        .select(
+          '*, '
+          'project_ndt_planning!inner('
+          '  id, ndt_company_task, '
+          '  projects:project_id(project_name, project_code)'
+          '), '
+          'ndt_companies:ndt_company_id(name)',
+        )
+        .filter('deleted_at', 'is', null)
+        .order('deployment_date', ascending: false)
+        .limit(100);
+
+    return SupabaseClientWrapper.safeList(response)
+        .map((json) => DeploymentModel.fromJson(json))
+        .toList();
+  }
+
   /// Get today's deployments for a company.
   Future<List<DeploymentModel>> getTodayDeployments({
     String? companyId,
