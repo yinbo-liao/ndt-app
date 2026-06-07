@@ -54,7 +54,7 @@ final appRouterProvider = Provider<GoRouter>((ref) {
   // Role-based route access map.
   // 'admin' = admin only, 'company' = admin + ndt_company, 'any' = authenticated.
   const adminOnly = ['/users', '/companies', '/audit-logs'];
-  const companyPlus = ['/contractors', '/professionals'];
+  const companyPlus = ['/professional-register', '/professionals'];
 
   return GoRouter(
     initialLocation: '/login',
@@ -134,35 +134,45 @@ final appRouterProvider = Provider<GoRouter>((ref) {
                 builder: (context, state) {
                   final projectId =
                       state.pathParameters['projectId']!;
-                  return _ProjectEditPage(projectId: projectId);
+                  return _FetchEditPage<ProjectModel>(
+                    id: projectId,
+                    entityLabel: 'Project',
+                    fetcher: (id) => ProjectRepository().getById(id),
+                    builder: (model) => ProjectFormPage(existing: model),
+                  );
                 },
               ),
             ],
           ),
 
-          // ── NDT Contractor Register ────────────────────────────
+          // ── NDT Contractor Register (Technician/Professional Register) ──
           GoRoute(
-            path: '/contractors',
-            name: 'contractors',
+            path: '/professional-register',
+            name: 'professional-register',
             builder: (context, state) => const ContractorListPage(),
             routes: [
               GoRoute(
                 path: 'create',
-                name: 'contractor-create',
+                name: 'professional-register-create',
                 builder: (context, state) => const ContractorFormPage(),
               ),
               GoRoute(
                 path: ':contractorId/edit',
-                name: 'contractor-edit',
+                name: 'professional-register-edit',
                 builder: (context, state) {
                   final contractorId =
                       state.pathParameters['contractorId']!;
-                  return _ContractorEditPage(contractorId: contractorId);
+                  return _FetchEditPage<ContractorModel>(
+                    id: contractorId,
+                    entityLabel: 'Contractor',
+                    fetcher: (id) => ContractorRepository().getById(id),
+                    builder: (model) => ContractorFormPage(existing: model),
+                  );
                 },
               ),
               GoRoute(
                 path: ':contractorId',
-                name: 'contractor-detail',
+                name: 'professional-register-detail',
                 builder: (context, state) {
                   return const ContractorListPage();
                 },
@@ -315,7 +325,12 @@ final appRouterProvider = Provider<GoRouter>((ref) {
                 builder: (context, state) {
                   final companyId =
                       state.pathParameters['companyId']!;
-                  return _CompanyEditPage(companyId: companyId);
+                  return _FetchEditPage<CompanyModel>(
+                    id: companyId,
+                    entityLabel: 'Company',
+                    fetcher: (id) => CompanyRepository().getById(id),
+                    builder: (model) => CompanyFormPage(existing: model),
+                  );
                 },
               ),
             ],
@@ -349,7 +364,12 @@ final appRouterProvider = Provider<GoRouter>((ref) {
                 builder: (context, state) {
                   final professionalId =
                       state.pathParameters['professionalId']!;
-                  return _ProfessionalEditPage(professionalId: professionalId);
+                  return _FetchEditPage<ProfessionalModel>(
+                    id: professionalId,
+                    entityLabel: 'Professional',
+                    fetcher: (id) => ProfessionalRepository().getById(id),
+                    builder: (model) => ProfessionalFormPage(existing: model),
+                  );
                 },
               ),
             ],
@@ -426,22 +446,33 @@ final appRouterProvider = Provider<GoRouter>((ref) {
 });
 
 // ─────────────────────────────────────────────────────────────
-// Edit Route Wrappers
+// Edit Route Wrapper (Generic)
 //
-// These fetch the existing model by ID and pass it to the form
-// page. This keeps the form pages' constructors unchanged while
+// Fetches a model by ID and passes it to a form page's `existing`
+// parameter. This keeps form page constructors unchanged while
 // enabling GoRouter-based edit navigation.
 // ─────────────────────────────────────────────────────────────
 
-/// Fetches a [CompanyModel] by ID and renders [CompanyFormPage] in edit mode.
-class _CompanyEditPage extends StatelessWidget {
-  final String companyId;
-  const _CompanyEditPage({required this.companyId});
+/// Generic widget that fetches a model of type [T] by ID, shows a loading
+/// spinner while waiting, an error state on failure, and renders [builder]
+/// with the fetched model on success.
+class _FetchEditPage<T> extends StatelessWidget {
+  final String id;
+  final String entityLabel;
+  final Future<T?> Function(String id) fetcher;
+  final Widget Function(T model) builder;
+
+  const _FetchEditPage({
+    required this.id,
+    required this.entityLabel,
+    required this.fetcher,
+    required this.builder,
+  });
 
   @override
   Widget build(BuildContext context) {
-    return FutureBuilder<CompanyModel?>(
-      future: CompanyRepository().getById(companyId),
+    return FutureBuilder<T?>(
+      future: fetcher(id),
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
           return const Scaffold(
@@ -450,92 +481,11 @@ class _CompanyEditPage extends StatelessWidget {
         }
         if (snapshot.hasError || snapshot.data == null) {
           return Scaffold(
-            appBar: AppBar(title: const Text('Edit Company')),
-            body: const Center(child: Text('Company not found')),
+            appBar: AppBar(title: Text('Edit $entityLabel')),
+            body: Center(child: Text('$entityLabel not found')),
           );
         }
-        return CompanyFormPage(existing: snapshot.data!);
-      },
-    );
-  }
-}
-
-/// Fetches a [ProjectModel] by ID and renders [ProjectFormPage] in edit mode.
-class _ProjectEditPage extends StatelessWidget {
-  final String projectId;
-  const _ProjectEditPage({required this.projectId});
-
-  @override
-  Widget build(BuildContext context) {
-    return FutureBuilder<ProjectModel?>(
-      future: ProjectRepository().getById(projectId),
-      builder: (context, snapshot) {
-        if (snapshot.connectionState == ConnectionState.waiting) {
-          return const Scaffold(
-            body: Center(child: CircularProgressIndicator()),
-          );
-        }
-        if (snapshot.hasError || snapshot.data == null) {
-          return Scaffold(
-            appBar: AppBar(title: const Text('Edit Project')),
-            body: const Center(child: Text('Project not found')),
-          );
-        }
-        return ProjectFormPage(existing: snapshot.data!);
-      },
-    );
-  }
-}
-
-/// Fetches a [ContractorModel] by ID and renders [ContractorFormPage] in edit mode.
-class _ContractorEditPage extends StatelessWidget {
-  final String contractorId;
-  const _ContractorEditPage({required this.contractorId});
-
-  @override
-  Widget build(BuildContext context) {
-    return FutureBuilder<ContractorModel?>(
-      future: ContractorRepository().getById(contractorId),
-      builder: (context, snapshot) {
-        if (snapshot.connectionState == ConnectionState.waiting) {
-          return const Scaffold(
-            body: Center(child: CircularProgressIndicator()),
-          );
-        }
-        if (snapshot.hasError || snapshot.data == null) {
-          return Scaffold(
-            appBar: AppBar(title: const Text('Edit Contractor')),
-            body: const Center(child: Text('Contractor not found')),
-          );
-        }
-        return ContractorFormPage(existing: snapshot.data!);
-      },
-    );
-  }
-}
-
-/// Fetches a [ProfessionalModel] by ID and renders [ProfessionalFormPage] in edit mode.
-class _ProfessionalEditPage extends StatelessWidget {
-  final String professionalId;
-  const _ProfessionalEditPage({required this.professionalId});
-
-  @override
-  Widget build(BuildContext context) {
-    return FutureBuilder<ProfessionalModel?>(
-      future: ProfessionalRepository().getById(professionalId),
-      builder: (context, snapshot) {
-        if (snapshot.connectionState == ConnectionState.waiting) {
-          return const Scaffold(
-            body: Center(child: CircularProgressIndicator()),
-          );
-        }
-        if (snapshot.hasError || snapshot.data == null) {
-          return Scaffold(
-            appBar: AppBar(title: const Text('Edit Professional')),
-            body: const Center(child: Text('Professional not found')),
-          );
-        }
-        return ProfessionalFormPage(existing: snapshot.data!);
+        return builder(snapshot.data as T);
       },
     );
   }

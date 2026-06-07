@@ -1,5 +1,6 @@
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../models/contractor_model.dart';
+import '../dto/contractor_dto.dart';
 import '../../core/services/supabase_client.dart';
 
 /// Repository for NDT Contractor Register CRUD operations.
@@ -24,10 +25,11 @@ class ContractorRepository {
   // ── Read ───────────────────────────────────────────────────
 
   /// Get all non-deleted contractors across all companies (admin).
+  /// Includes joined company names.
   Future<List<ContractorModel>> getAll() async {
     final response = await _client
         .from(SupabaseClientWrapper.tblContractorRegister)
-        .select()
+        .select('*, ndt_companies:ndt_company_id(name)')
         .isFilter('deleted_at', null)
         .order('expire_date', ascending: false);
 
@@ -40,7 +42,7 @@ class ContractorRepository {
   Future<List<ContractorModel>> getByMonth(DateTime monthStart) async {
     final response = await _client
         .from(SupabaseClientWrapper.tblContractorRegister)
-        .select()
+        .select('*, ndt_companies:ndt_company_id(name)')
         .eq('report_month', monthStart.toIso8601String().split('T')[0])
         .isFilter('deleted_at', null)
         .order('expire_date', ascending: false);
@@ -54,7 +56,7 @@ class ContractorRepository {
   Future<List<ContractorModel>> getByCompany(String companyId) async {
     final response = await _client
         .from(SupabaseClientWrapper.tblContractorRegister)
-        .select()
+        .select('*, ndt_companies:ndt_company_id(name)')
         .eq('ndt_company_id', companyId)
         .isFilter('deleted_at', null)
         .order('expire_date', ascending: false);
@@ -71,7 +73,7 @@ class ContractorRepository {
   }) async {
     final response = await _client
         .from(SupabaseClientWrapper.tblContractorRegister)
-        .select()
+        .select('*, ndt_companies:ndt_company_id(name)')
         .eq('ndt_company_id', companyId)
         .eq('report_month', monthStart.toIso8601String().split('T')[0])
         .isFilter('deleted_at', null)
@@ -99,6 +101,53 @@ class ContractorRepository {
 
     return SupabaseClientWrapper.safeList(response)
         .map((json) => ContractorModel.fromJson(json))
+        .toList();
+  }
+
+  // ── DTO Queries (with joined names) ──────────────────────────
+
+  /// Get all contractors as DTOs (admin, with joined names).
+  Future<List<ContractorDTO>> getAllAsDto() async {
+    final response = await _client
+        .from(SupabaseClientWrapper.tblContractorRegister)
+        .select('*, ndt_companies:ndt_company_id(name)')
+        .isFilter('deleted_at', null)
+        .order('expire_date', ascending: false);
+
+    return SupabaseClientWrapper.safeList(response)
+        .map((json) => ContractorDTO.fromJson(json))
+        .toList();
+  }
+
+  /// Get contractors for a month as DTOs (admin, with joined names).
+  Future<List<ContractorDTO>> getByMonthAsDto(DateTime monthStart) async {
+    final response = await _client
+        .from(SupabaseClientWrapper.tblContractorRegister)
+        .select('*, ndt_companies:ndt_company_id(name)')
+        .eq('report_month', monthStart.toIso8601String().split('T')[0])
+        .isFilter('deleted_at', null)
+        .order('expire_date', ascending: false);
+
+    return SupabaseClientWrapper.safeList(response)
+        .map((json) => ContractorDTO.fromJson(json))
+        .toList();
+  }
+
+  /// Get contractors for a company and month as DTOs (with joined names).
+  Future<List<ContractorDTO>> getByCompanyAndMonthAsDto({
+    required String companyId,
+    required DateTime monthStart,
+  }) async {
+    final response = await _client
+        .from(SupabaseClientWrapper.tblContractorRegister)
+        .select('*, ndt_companies:ndt_company_id(name)')
+        .eq('ndt_company_id', companyId)
+        .eq('report_month', monthStart.toIso8601String().split('T')[0])
+        .isFilter('deleted_at', null)
+        .order('expire_date', ascending: false);
+
+    return SupabaseClientWrapper.safeList(response)
+        .map((json) => ContractorDTO.fromJson(json))
         .toList();
   }
 

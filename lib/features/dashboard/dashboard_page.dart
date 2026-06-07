@@ -195,7 +195,7 @@ class _DashboardPageState extends ConsumerState<DashboardPage> {
     const tables = [
       _TableInfo('NDT Companies', Icons.business, '/companies', 'ndt_companies'),
       _TableInfo('Users', Icons.people, '/users', 'users'),
-      _TableInfo('Contractors', Icons.verified_user, '/contractors', 'ndt_contractor_register'),
+      _TableInfo('Professional Register', Icons.verified_user, '/professional-register', 'ndt_contractor_register'),
       _TableInfo('Projects', Icons.apartment, '/projects', 'projects'),
       _TableInfo('NDT Planning', Icons.assignment_turned_in, '/planning', 'project_ndt_planning'),
       _TableInfo('Deployments', Icons.engineering, '/deployments', 'ndt_team_deployments'),
@@ -289,7 +289,7 @@ class _DashboardPageState extends ConsumerState<DashboardPage> {
     if (role == AppConstants.roleAdmin) {
       items.addAll([
         _NavItem(Icons.assignment_turned_in, 'NDT RFI Review', 'Manage NDT planning requests', '/planning'),
-        _NavItem(Icons.groups, 'NDT Teams Update', 'Contractor register & team assignments', '/contractors'),
+        _NavItem(Icons.groups, 'Professional Register', 'Technician certificates & team assignments', '/professional-register'),
         _NavItem(Icons.person_search, 'NDT Professionals', 'Manage NDT professional register', '/professionals'),
         _NavItem(Icons.engineering, 'NDT Deployment Review', 'View and manage team deployments', '/deployments'),
         _NavItem(Icons.business, 'Project Management', 'Create and manage projects', '/projects'),
@@ -298,7 +298,7 @@ class _DashboardPageState extends ConsumerState<DashboardPage> {
       ]);
     } else if (role == AppConstants.roleNdtCompany) {
       items.addAll([
-        _NavItem(Icons.groups, 'NDT Teams Update', 'Contractor register & team assignments', '/contractors'),
+        _NavItem(Icons.groups, 'Professional Register', 'Technician certificates & team assignments', '/professional-register'),
         _NavItem(Icons.person_search, 'NDT Professionals', 'Manage NDT professional register', '/professionals'),
         _NavItem(Icons.engineering, 'NDT Deployment Review', 'View and update team deployments', '/deployments'),
         _NavItem(Icons.assignment, 'NDT RFI Register', 'View and manage NDT RFIs', '/planning'),

@@ -1,4 +1,5 @@
 import 'package:equatable/equatable.dart';
+import 'joint_detail.dart';
 
 /// Project NDT Planning model mapped to `project_ndt_planning`.
 class PlanningModel extends Equatable {
@@ -22,6 +23,16 @@ class PlanningModel extends Equatable {
   final String teamDeployStatus; // 'not_deployed','deployed','in_progress','completed'
   final String acceptStatus; // 'accept','reject','pending'
   final bool rfiSentToTeam; // RFI dispatched to team flag (migration 002)
+  // ── Structural RFI fields (migration 007) ─────────────────
+  final String? drawingRef;
+  final String? isoLineNo;
+  final String? systemName;
+  final String? materialGrade;
+  final String? ndtSpecification;
+  final String? acceptanceStandard;
+  final double? ndtCoveragePct;
+  final String? surfaceCondition;
+  final List<JointDetail> jointDetails;
   final DateTime? createdAt;
   final DateTime? updatedAt;
 
@@ -46,6 +57,15 @@ class PlanningModel extends Equatable {
     this.teamDeployStatus = 'not_deployed',
     this.acceptStatus = 'pending',
     this.rfiSentToTeam = false,
+    this.drawingRef,
+    this.isoLineNo,
+    this.systemName,
+    this.materialGrade,
+    this.ndtSpecification,
+    this.acceptanceStandard,
+    this.ndtCoveragePct,
+    this.surfaceCondition,
+    this.jointDetails = const [],
     this.createdAt,
     this.updatedAt,
   });
@@ -79,6 +99,15 @@ class PlanningModel extends Equatable {
           json['team_deploy_status'] as String? ?? 'not_deployed',
       acceptStatus: json['accept_status'] as String? ?? 'pending',
       rfiSentToTeam: json['rfi_sent_to_team'] as bool? ?? false,
+      drawingRef: json['drawing_ref'] as String?,
+      isoLineNo: json['iso_line_no'] as String?,
+      systemName: json['system_name'] as String?,
+      materialGrade: json['material_grade'] as String?,
+      ndtSpecification: json['ndt_specification'] as String?,
+      acceptanceStandard: json['acceptance_standard'] as String?,
+      ndtCoveragePct: (json['ndt_coverage_pct'] as num?)?.toDouble(),
+      surfaceCondition: json['surface_condition'] as String?,
+      jointDetails: _parseJointDetails(json['joint_details']),
       createdAt: json['created_at'] != null
           ? DateTime.tryParse(json['created_at'] as String)
           : null,
@@ -86,6 +115,16 @@ class PlanningModel extends Equatable {
           ? DateTime.tryParse(json['updated_at'] as String)
           : null,
     );
+  }
+
+  static List<JointDetail> _parseJointDetails(dynamic json) {
+    if (json is List) {
+      return json
+          .whereType<Map<String, dynamic>>()
+          .map((e) => JointDetail.fromJson(e))
+          .toList();
+    }
+    return [];
   }
 
   Map<String, dynamic> toJson() {
@@ -113,6 +152,16 @@ class PlanningModel extends Equatable {
       'team_deploy_status': teamDeployStatus,
       'accept_status': acceptStatus,
       'rfi_sent_to_team': rfiSentToTeam,
+      if (drawingRef != null) 'drawing_ref': drawingRef,
+      if (isoLineNo != null) 'iso_line_no': isoLineNo,
+      if (systemName != null) 'system_name': systemName,
+      if (materialGrade != null) 'material_grade': materialGrade,
+      if (ndtSpecification != null) 'ndt_specification': ndtSpecification,
+      if (acceptanceStandard != null) 'acceptance_standard': acceptanceStandard,
+      if (ndtCoveragePct != null) 'ndt_coverage_pct': ndtCoveragePct,
+      if (surfaceCondition != null) 'surface_condition': surfaceCondition,
+      if (jointDetails.isNotEmpty)
+        'joint_details': jointDetails.map((j) => j.toJson()).toList(),
       if (createdAt != null) 'created_at': createdAt!.toUtc().toIso8601String(),
       if (updatedAt != null) 'updated_at': updatedAt!.toUtc().toIso8601String(),
     };
@@ -139,6 +188,15 @@ class PlanningModel extends Equatable {
     String? teamDeployStatus,
     String? acceptStatus,
     bool? rfiSentToTeam,
+    String? drawingRef,
+    String? isoLineNo,
+    String? systemName,
+    String? materialGrade,
+    String? ndtSpecification,
+    String? acceptanceStandard,
+    double? ndtCoveragePct,
+    String? surfaceCondition,
+    List<JointDetail>? jointDetails,
     DateTime? createdAt,
     DateTime? updatedAt,
   }) {
@@ -163,6 +221,15 @@ class PlanningModel extends Equatable {
       teamDeployStatus: teamDeployStatus ?? this.teamDeployStatus,
       acceptStatus: acceptStatus ?? this.acceptStatus,
       rfiSentToTeam: rfiSentToTeam ?? this.rfiSentToTeam,
+      drawingRef: drawingRef ?? this.drawingRef,
+      isoLineNo: isoLineNo ?? this.isoLineNo,
+      systemName: systemName ?? this.systemName,
+      materialGrade: materialGrade ?? this.materialGrade,
+      ndtSpecification: ndtSpecification ?? this.ndtSpecification,
+      acceptanceStandard: acceptanceStandard ?? this.acceptanceStandard,
+      ndtCoveragePct: ndtCoveragePct ?? this.ndtCoveragePct,
+      surfaceCondition: surfaceCondition ?? this.surfaceCondition,
+      jointDetails: jointDetails ?? this.jointDetails,
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
     );
@@ -190,6 +257,15 @@ class PlanningModel extends Equatable {
         teamDeployStatus,
         acceptStatus,
         rfiSentToTeam,
+        drawingRef,
+        isoLineNo,
+        systemName,
+        materialGrade,
+        ndtSpecification,
+        acceptanceStandard,
+        ndtCoveragePct,
+        surfaceCondition,
+        jointDetails,
         createdAt,
         updatedAt,
       ];

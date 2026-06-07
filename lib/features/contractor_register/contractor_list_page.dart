@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../data/models/contractor_model.dart';
+import '../../data/dto/contractor_dto.dart';
 import '../../core/theme/color_palette.dart';
 import '../../core/utils/extensions.dart';
 import '../../widgets/common/loading_indicator.dart';
@@ -56,17 +57,17 @@ class _ContractorListPageState extends ConsumerState<ContractorListPage> {
   @override
   Widget build(BuildContext context) {
     final contractorsAsync =
-        ref.watch(contractorsByMonthProvider(_selectedMonth));
+        ref.watch(contractorsByMonthDtoProvider(_selectedMonth));
     final summaryAsync =
         ref.watch(contractorSummaryProvider(_selectedMonth));
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('NDT Teams Update'),
+        title: const Text('Professional Register'),
       ),
       floatingActionButton: FloatingActionButton(
         heroTag: 'add-contractor',
-        onPressed: () => context.push('/contractors/create'),
+        onPressed: () => context.push('/professional-register/create'),
         child: const Icon(Icons.add),
       ),
       body: Column(
@@ -92,7 +93,7 @@ class _ContractorListPageState extends ConsumerState<ContractorListPage> {
                 }
                 return RefreshIndicator(
                   onRefresh: () async => ref.invalidate(
-                      contractorsByMonthProvider(
+                      contractorsByMonthDtoProvider(
                           _selectedMonth)),
                   child: _buildDataTable(contractors),
                 );
@@ -102,7 +103,7 @@ class _ContractorListPageState extends ConsumerState<ContractorListPage> {
               error: (error, st) => AppErrorWidget(
                 message: 'Failed to load: $error',
                 onRetry: () =>
-                    ref.invalidate(contractorsByMonthProvider(_selectedMonth)),
+                    ref.invalidate(contractorsByMonthDtoProvider(_selectedMonth)),
               ),
             ),
           ),
@@ -186,7 +187,7 @@ class _ContractorListPageState extends ConsumerState<ContractorListPage> {
     );
   }
 
-  Widget _buildDataTable(List<ContractorModel> contractors) {
+  Widget _buildDataTable(List<ContractorDTO> dtos) {
     final today = DateTime.now();
     return SingleChildScrollView(
       scrollDirection: Axis.horizontal,
@@ -202,12 +203,17 @@ class _ContractorListPageState extends ConsumerState<ContractorListPage> {
             DataColumn(label: Text('NDT Type', style: _headerStyle)),
             DataColumn(label: Text('Certificate', style: _headerStyle)),
             DataColumn(label: Text('Cert No', style: _headerStyle)),
+            DataColumn(label: Text('Technician Name', style: _headerStyle)),
+            DataColumn(label: Text('Company', style: _headerStyle)),
+            DataColumn(label: Text('NDT Professional Name', style: _headerStyle)),
+            DataColumn(label: Text('Tech ID', style: _headerStyle)),
             DataColumn(label: Text('Issue Date', style: _headerStyle)),
             DataColumn(label: Text('Expire Date', style: _headerStyle)),
             DataColumn(label: Text('Status', style: _headerStyle)),
             DataColumn(label: Text('', style: _headerStyle)),
           ],
-          rows: contractors.map((c) {
+          rows: dtos.map((dto) {
+            final c = dto.contractor;
             final isExpired = c.expireDate.isBefore(today);
             final isExpiring = c.isExpiringSoon;
             return DataRow(
@@ -219,6 +225,16 @@ class _ContractorListPageState extends ConsumerState<ContractorListPage> {
                 DataCell(Text(c.typeOfNdt)),
                 DataCell(Text(c.typeOfNdtCertificate)),
                 DataCell(Text(c.certificateNo)),
+                DataCell(Text(c.technicianName ?? '—',
+                    style: const TextStyle(fontWeight: FontWeight.w500))),
+                DataCell(Text(dto.companyLabel,
+                    style: TextStyle(
+                        fontSize: 12, color: Colors.grey[700]))),
+                DataCell(Text(dto.professionalLabel,
+                    style: TextStyle(fontSize: 12))),
+                DataCell(Text(c.techId ?? '—',
+                    style: const TextStyle(
+                        fontWeight: FontWeight.w600, fontSize: 13))),
                 DataCell(Text(c.issueDate.toIsoDateString)),
                 DataCell(
                   Row(
@@ -263,15 +279,13 @@ class _ContractorListPageState extends ConsumerState<ContractorListPage> {
                     icon: const Icon(Icons.edit, size: 18),
                     tooltip: 'Edit contractor',
                     onPressed: () {
-                      // Navigate to edit form via the existing route.
-                      // The ContractorFormPage handles edit when `existing`
-                      // is passed; we use the route-based wrapper.
                       Navigator.of(context).push(
                         MaterialPageRoute(
                           builder: (_) => ContractorFormPage(existing: c),
                         ),
                       ).then((_) {
                         if (context.mounted) {
+                          ref.invalidate(contractorsByMonthDtoProvider);
                           ref.invalidate(contractorsProvider);
                           ref.invalidate(contractorsByMonthProvider);
                         }
@@ -288,7 +302,6 @@ class _ContractorListPageState extends ConsumerState<ContractorListPage> {
   }
 
   void _openDetail(ContractorModel contractor) {
-    // Navigate to detail via push and pass the contractor
     Navigator.of(context).push(
       MaterialPageRoute(
         builder: (_) => _ContractorDetailWrapper(contractor: contractor),
@@ -334,7 +347,7 @@ class _ContractorDetailWrapper extends ConsumerWidget {
             tooltip: 'Edit',
             onPressed: () {
               Navigator.pop(context);
-              context.push('/contractors/${contractor.id}/edit');
+              context.push('/professional-register/${contractor.id}/edit');
             },
           ),
           IconButton(
@@ -415,7 +428,7 @@ class _ContractorDetailWrapper extends ConsumerWidget {
             const SizedBox(height: 24),
             _statTile('Certificate No', contractor.certificateNo,
                 Icons.badge),
-            _statTile('Certificate Type',
+            _statTile('Certificate issued by',
                 contractor.certificateType ?? 'N/A', Icons.class_),
             _statTile('Issue Date',
                 contractor.issueDate.toIsoDateString, Icons.event),

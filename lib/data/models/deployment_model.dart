@@ -94,8 +94,19 @@ class DeploymentModel extends Equatable {
   /// The shift as a database string value.
   String get shiftValue => shift.name;
 
-  /// The testing status as a database string value.
-  String get testingStatusValue => testingStatus.name;
+  /// The testing status as a database string value (snake_case for DB CHECK constraint).
+  String get testingStatusValue {
+    switch (testingStatus) {
+      case DeploymentTestingStatus.notStarted:
+        return 'not_started';
+      case DeploymentTestingStatus.inProgress:
+        return 'in_progress';
+      case DeploymentTestingStatus.completed:
+        return 'completed';
+      case DeploymentTestingStatus.rejected:
+        return 'rejected';
+    }
+  }
 
   /// Total number of team members assigned.
   int get memberCount => teamMembers.length;

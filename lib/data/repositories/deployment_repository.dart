@@ -137,6 +137,19 @@ class DeploymentRepository {
     return DeploymentModel.fromJson(response);
   }
 
+  String _statusToDb(DeploymentTestingStatus s) {
+    switch (s) {
+      case DeploymentTestingStatus.notStarted:
+        return 'not_started';
+      case DeploymentTestingStatus.inProgress:
+        return 'in_progress';
+      case DeploymentTestingStatus.completed:
+        return 'completed';
+      case DeploymentTestingStatus.rejected:
+        return 'rejected';
+    }
+  }
+
   /// Update the testing status of a deployment.
   Future<void> updateStatus({
     required String deploymentId,
@@ -145,7 +158,7 @@ class DeploymentRepository {
     double? rejectLength,
   }) async {
     final updates = <String, dynamic>{
-      'testing_status': status.name,
+      'testing_status': _statusToDb(status),
     };
 
     if (testLength != null) updates['test_length'] = testLength;

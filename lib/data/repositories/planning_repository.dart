@@ -1,5 +1,6 @@
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../models/planning_model.dart';
+import '../dto/planning_dto.dart';
 import '../../core/services/supabase_client.dart';
 
 /// Repository for Project NDT Planning CRUD operations.
@@ -23,11 +24,13 @@ class PlanningRepository {
 
   // ── Read ───────────────────────────────────────────────────
 
+  final _joinedSelect = '*, projects:project_id(project_name, project_code), ndt_companies:ndt_company_id(name)';
+
   /// Get all planning entries across all projects (admin).
   Future<List<PlanningModel>> getAll() async {
     final response = await _client
         .from(SupabaseClientWrapper.tblPlanning)
-        .select('*, projects:project_id(project_name, project_code)')
+        .select(_joinedSelect)
         .order('planned_start_date', ascending: false);
 
     return SupabaseClientWrapper.safeList(response)
@@ -39,7 +42,7 @@ class PlanningRepository {
   Future<List<PlanningModel>> getByProject(String projectId) async {
     final response = await _client
         .from(SupabaseClientWrapper.tblPlanning)
-        .select('*, projects:project_id(project_name, project_code)')
+        .select(_joinedSelect)
         .eq('project_id', projectId)
         .order('planned_start_date', ascending: false);
 
@@ -52,7 +55,7 @@ class PlanningRepository {
   Future<List<PlanningModel>> getByCompany(String companyId) async {
     final response = await _client
         .from(SupabaseClientWrapper.tblPlanning)
-        .select('*, projects:project_id(project_name, project_code)')
+        .select(_joinedSelect)
         .eq('ndt_company_id', companyId)
         .order('planned_start_date', ascending: false);
 
@@ -78,7 +81,20 @@ class PlanningRepository {
         .toList();
   }
 
-  /// Get a single planning entry by ID.
+  /// Get a single planning entry by ID (as DTO with joined names).
+  Future<PlanningDTO?> getByIdAsDto(String id) async {
+    final response = await _client
+        .from(SupabaseClientWrapper.tblPlanning)
+        .select(_joinedSelect)
+        .eq('id', id)
+        .maybeSingle();
+
+    final data = SupabaseClientWrapper.safeSingle(response);
+    if (data == null) return null;
+    return PlanningDTO.fromJson(data);
+  }
+
+  /// Get a single planning entry by ID (model only).
   Future<PlanningModel?> getById(String id) async {
     final response = await _client
         .from(SupabaseClientWrapper.tblPlanning)
@@ -89,6 +105,44 @@ class PlanningRepository {
     final data = SupabaseClientWrapper.safeSingle(response);
     if (data == null) return null;
     return PlanningModel.fromJson(data);
+  }
+
+  /// Get planning entries as DTOs for a project.
+  Future<List<PlanningDTO>> getByProjectAsDto(String projectId) async {
+    final response = await _client
+        .from(SupabaseClientWrapper.tblPlanning)
+        .select(_joinedSelect)
+        .eq('project_id', projectId)
+        .order('planned_start_date', ascending: false);
+
+    return SupabaseClientWrapper.safeList(response)
+        .map((json) => PlanningDTO.fromJson(json))
+        .toList();
+  }
+
+  /// Get planning entries as DTOs for a company.
+  Future<List<PlanningDTO>> getByCompanyAsDto(String companyId) async {
+    final response = await _client
+        .from(SupabaseClientWrapper.tblPlanning)
+        .select(_joinedSelect)
+        .eq('ndt_company_id', companyId)
+        .order('planned_start_date', ascending: false);
+
+    return SupabaseClientWrapper.safeList(response)
+        .map((json) => PlanningDTO.fromJson(json))
+        .toList();
+  }
+
+  /// Get all planning entries as DTOs (admin).
+  Future<List<PlanningDTO>> getAllAsDto() async {
+    final response = await _client
+        .from(SupabaseClientWrapper.tblPlanning)
+        .select(_joinedSelect)
+        .order('planned_start_date', ascending: false);
+
+    return SupabaseClientWrapper.safeList(response)
+        .map((json) => PlanningDTO.fromJson(json))
+        .toList();
   }
 
   // ── Update ─────────────────────────────────────────────────

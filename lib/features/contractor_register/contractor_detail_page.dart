@@ -100,7 +100,7 @@ class ContractorDetailPage extends StatelessWidget {
               icon: Icons.badge,
             ),
             StatCard(
-              label: 'Certificate Type',
+              label: 'Certificate issued by',
               value: contractor.certificateType ?? 'N/A',
               icon: Icons.class_,
             ),

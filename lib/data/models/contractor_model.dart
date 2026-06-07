@@ -13,6 +13,9 @@ class ContractorModel extends Equatable {
   final DateTime expireDate;
   final String validationStatus; // 'valid', 'expired', 'pending', 'revoked'
   final DateTime reportMonth; // First day of reporting month
+  final String? ndtProfessionalId; // FK to ndt_professional_register
+  final String? techId; // 4-character technician reference ID
+  final String? technicianName; // Name of the technician
   final String? createdBy;
   final DateTime? createdAt;
   final DateTime? updatedAt;
@@ -29,6 +32,9 @@ class ContractorModel extends Equatable {
     required this.expireDate,
     this.validationStatus = 'pending',
     required this.reportMonth,
+    this.ndtProfessionalId,
+    this.techId,
+    this.technicianName,
     this.createdBy,
     this.createdAt,
     this.updatedAt,
@@ -53,6 +59,9 @@ class ContractorModel extends Equatable {
       expireDate: DateTime.parse(json['expire_date'] as String),
       validationStatus: json['validation_status'] as String? ?? 'pending',
       reportMonth: DateTime.parse(json['report_month'] as String),
+      ndtProfessionalId: json['ndt_professional_id'] as String?,
+      techId: json['tech_id'] as String?,
+      technicianName: json['technician_name'] as String?,
       createdBy: json['created_by'] as String?,
       createdAt: json['created_at'] != null
           ? DateTime.tryParse(json['created_at'] as String)
@@ -78,6 +87,9 @@ class ContractorModel extends Equatable {
       'expire_date': expireDate.toIso8601String().split('T')[0],
       'validation_status': validationStatus,
       'report_month': reportMonth.toIsoDateString,
+      if (ndtProfessionalId != null) 'ndt_professional_id': ndtProfessionalId,
+      if (techId != null) 'tech_id': techId,
+      if (technicianName != null) 'technician_name': technicianName,
       if (createdBy != null) 'created_by': createdBy,
       if (createdAt != null) 'created_at': createdAt!.toUtc().toIso8601String(),
       if (updatedAt != null) 'updated_at': updatedAt!.toUtc().toIso8601String(),
@@ -96,6 +108,9 @@ class ContractorModel extends Equatable {
     DateTime? expireDate,
     String? validationStatus,
     DateTime? reportMonth,
+    String? ndtProfessionalId,
+    String? techId,
+    String? technicianName,
     String? createdBy,
     DateTime? createdAt,
     DateTime? updatedAt,
@@ -112,6 +127,9 @@ class ContractorModel extends Equatable {
       expireDate: expireDate ?? this.expireDate,
       validationStatus: validationStatus ?? this.validationStatus,
       reportMonth: reportMonth ?? this.reportMonth,
+      ndtProfessionalId: ndtProfessionalId ?? this.ndtProfessionalId,
+      techId: techId ?? this.techId,
+      technicianName: technicianName ?? this.technicianName,
       createdBy: createdBy ?? this.createdBy,
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
@@ -131,6 +149,9 @@ class ContractorModel extends Equatable {
         expireDate,
         validationStatus,
         reportMonth,
+        ndtProfessionalId,
+        techId,
+        technicianName,
         createdBy,
         createdAt,
         updatedAt,

@@ -3,8 +3,9 @@ import 'package:flutter/material.dart';
 /// Date picker form field.
 ///
 /// Displays a read-only text field that opens a [showDatePicker]
-/// dialog on tap.
-class DatePickerField extends StatelessWidget {
+/// dialog on tap. Uses a [TextEditingController] to properly
+/// reflect programmatic value changes from the parent widget.
+class DatePickerField extends StatefulWidget {
   final String label;
   final DateTime? value;
   final DateTime? firstDate;
@@ -24,6 +25,13 @@ class DatePickerField extends StatelessWidget {
     this.hintText,
   });
 
+  @override
+  State<DatePickerField> createState() => _DatePickerFieldState();
+}
+
+class _DatePickerFieldState extends State<DatePickerField> {
+  late final TextEditingController _controller;
+
   String _formatDate(DateTime? date) {
     if (date == null) return '';
     return '${date.year.toString().padLeft(4, '0')}-'
@@ -32,29 +40,50 @@ class DatePickerField extends StatelessWidget {
   }
 
   @override
+  void initState() {
+    super.initState();
+    _controller = TextEditingController(text: _formatDate(widget.value));
+  }
+
+  @override
+  void didUpdateWidget(covariant DatePickerField oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (widget.value != oldWidget.value) {
+      _controller.text = _formatDate(widget.value);
+    }
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
     return InkWell(
       onTap: () async {
         final picked = await showDatePicker(
           context: context,
-          initialDate: value ?? DateTime.now(),
-          firstDate: firstDate ?? DateTime(2024),
-          lastDate: lastDate ?? DateTime.now().add(const Duration(days: 365)),
-          helpText: label,
+          initialDate: widget.value ?? DateTime.now(),
+          firstDate: widget.firstDate ?? DateTime(2024),
+          lastDate:
+              widget.lastDate ?? DateTime.now().add(const Duration(days: 365)),
+          helpText: widget.label,
         );
         if (picked != null) {
-          onChanged(picked);
+          widget.onChanged(picked);
         }
       },
       child: IgnorePointer(
         child: TextFormField(
+          controller: _controller,
           decoration: InputDecoration(
-            labelText: label,
-            hintText: hintText,
+            labelText: widget.label,
+            hintText: widget.hintText,
             prefixIcon: const Icon(Icons.calendar_today),
           ),
-          controller: TextEditingController(text: _formatDate(value)),
-          validator: (_) => validator?.call(value),
+          validator: (_) => widget.validator?.call(widget.value),
         ),
       ),
     );

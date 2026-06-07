@@ -5,6 +5,7 @@ import '../../core/constants/app_constants.dart';
 import '../../data/models/company_model.dart';
 import '../../data/models/professional_model.dart';
 import '../../providers/auth_provider.dart';
+import '../../providers/role_provider.dart';
 import '../../widgets/forms/date_picker_field.dart';
 import '../../widgets/forms/text_input_field.dart';
 import '../../widgets/forms/dropdown_field.dart';
@@ -50,6 +51,16 @@ class _ProfessionalFormPageState
     _selectedCompanyId = e?.ndtCompanyId;
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
+      // For non-admin users creating a new entry, auto-set company from JWT.
+      if (!_isEditing && _selectedCompanyId == null) {
+        final isAdmin = ref.read(isAdminProvider);
+        if (!isAdmin) {
+          final jwtCompanyId = ref.read(currentUserCompanyIdProvider);
+          if (jwtCompanyId != null) {
+            setState(() => _selectedCompanyId = jwtCompanyId);
+          }
+        }
+      }
       _loadCompanies();
     });
   }

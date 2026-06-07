@@ -1,5 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../data/models/contractor_model.dart';
+import '../../data/dto/contractor_dto.dart';
 import '../../data/repositories/contractor_repository.dart';
 import '../../providers/auth_provider.dart';
 import '../../providers/role_provider.dart';
@@ -22,6 +23,24 @@ final contractorsProvider =
   final companyId = ref.watch(currentUserCompanyIdProvider);
   if (companyId == null) return [];
   return repository.getByCompany(companyId);
+});
+
+/// Fetch contractors as DTOs (with company & professional names) for a month.
+final contractorsByMonthDtoProvider = FutureProvider.autoDispose
+    .family<List<ContractorDTO>, DateTime>((ref, monthStart) async {
+  final repository = ref.watch(contractorRepositoryProvider);
+  final isAdmin = ref.watch(isAdminProvider);
+
+  if (isAdmin) {
+    return repository.getByMonthAsDto(monthStart);
+  }
+
+  final companyId = ref.watch(currentUserCompanyIdProvider);
+  if (companyId == null) return [];
+  return repository.getByCompanyAndMonthAsDto(
+    companyId: companyId,
+    monthStart: monthStart,
+  );
 });
 
 /// Fetch contractors for a specific month. Admin sees all; others scoped.

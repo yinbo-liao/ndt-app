@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../data/models/planning_model.dart';
+import '../../data/dto/planning_dto.dart';
 import '../../widgets/cards/stat_card.dart';
 import '../../widgets/common/loading_indicator.dart';
 import '../../widgets/common/error_widget.dart';
@@ -15,10 +16,8 @@ class PlanningDetailPage extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    // We fetch via the by-project provider; for individual detail we'll
-    // leverage PlanningRepository.getById directly.
     final detailAsync =
-        ref.watch(planningDetailProvider(planningId));
+        ref.watch(planningDetailDtoProvider(planningId));
 
     return Scaffold(
       appBar: AppBar(
@@ -27,25 +26,29 @@ class PlanningDetailPage extends ConsumerWidget {
           IconButton(
             icon: const Icon(Icons.edit),
             tooltip: 'Edit RFI',
-            onPressed: () => context.push(
-                '/planning/$planningId/edit?projectId=...'),
+            onPressed: () {
+              final dto = ref.read(planningDetailDtoProvider(planningId)).value;
+              final projectId = dto?.planning.projectId ?? '';
+              context.push(
+                  '/planning/$planningId/edit?projectId=$projectId');
+            },
           ),
         ],
       ),
       body: detailAsync.when(
-        data: (planning) {
-          if (planning == null) {
+        data: (dto) {
+          if (dto == null) {
             return const AppErrorWidget(
                 message: 'RFI not found');
           }
-          return _DetailContent(planning: planning);
+          return _DetailContent(dto: dto);
         },
         loading: () =>
             const LoadingIndicator(message: 'Loading RFI details...'),
         error: (error, st) => AppErrorWidget(
           message: 'Failed to load: $error',
           onRetry: () => ref
-              .invalidate(planningDetailProvider(planningId)),
+              .invalidate(planningDetailDtoProvider(planningId)),
         ),
       ),
     );
@@ -53,9 +56,11 @@ class PlanningDetailPage extends ConsumerWidget {
 }
 
 class _DetailContent extends StatelessWidget {
-  final PlanningModel planning;
+  final PlanningDTO dto;
 
-  const _DetailContent({required this.planning});
+  const _DetailContent({required this.dto});
+
+  PlanningModel get planning => dto.planning;
 
   @override
   Widget build(BuildContext context) {
@@ -64,6 +69,135 @@ class _DetailContent extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
+          // ── Project & Company ──────────────────────────
+          Card(
+            child: Padding(
+              padding: const EdgeInsets.all(16),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text('Project & Company',
+                      style: Theme.of(context)
+                          .textTheme
+                          .titleMedium
+                          ?.copyWith(fontWeight: FontWeight.bold)),
+                  const Divider(),
+                  _row('Project', dto.projectLabel),
+                  _row('Job Location', planning.jobLocation),
+                  _row('NDT Company', dto.companyLabel),
+                ],
+              ),
+            ),
+          ),
+          const SizedBox(height: 16),
+
+          // ── Reference Information ────────────────────────
+          if (planning.drawingRef != null ||
+              planning.isoLineNo != null ||
+              planning.systemName != null ||
+              planning.materialGrade != null ||
+              planning.ndtSpecification != null ||
+              planning.acceptanceStandard != null)
+            Card(
+              child: Padding(
+                padding: const EdgeInsets.all(16),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text('Reference Information',
+                        style: Theme.of(context)
+                            .textTheme
+                            .titleMedium
+                            ?.copyWith(fontWeight: FontWeight.bold)),
+                    const Divider(),
+                    _row('Drawing Ref', planning.drawingRef),
+                    _row('ISO / Line No', planning.isoLineNo),
+                    _row('System', planning.systemName),
+                    _row('Material Grade', planning.materialGrade),
+                    _row('NDT Specification', planning.ndtSpecification),
+                    _row('Acceptance Standard',
+                        planning.acceptanceStandard),
+                  ],
+                ),
+              ),
+            ),
+          const SizedBox(height: 16),
+
+          // ── NDT Scope ────────────────────────────────────
+          if (planning.typeOfTesting != null ||
+              planning.ndtCoveragePct != null ||
+              planning.surfaceCondition != null)
+            Card(
+              child: Padding(
+                padding: const EdgeInsets.all(16),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text('NDT Scope',
+                        style: Theme.of(context)
+                            .textTheme
+                            .titleMedium
+                            ?.copyWith(fontWeight: FontWeight.bold)),
+                    const Divider(),
+                    _row('NDT Method', planning.typeOfTesting),
+                    _row('Coverage',
+                        planning.ndtCoveragePct != null
+                            ? '${planning.ndtCoveragePct}%'
+                            : null),
+                    _row('Surface Condition',
+                        planning.surfaceCondition),
+                  ],
+                ),
+              ),
+            ),
+          const SizedBox(height: 16),
+
+          // ── Joint Details ────────────────────────────────
+          if (planning.jointDetails.isNotEmpty)
+            Card(
+              child: Padding(
+                padding: const EdgeInsets.all(16),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text('Joint / Weld Details',
+                        style: Theme.of(context)
+                            .textTheme
+                            .titleMedium
+                            ?.copyWith(fontWeight: FontWeight.bold)),
+                    const Divider(),
+                    DataTable(
+                      headingRowColor: WidgetStatePropertyAll(
+                        const Color(0xFF1A56DB).withAlpha(15),
+                      ),
+                      columnSpacing: 12,
+                      columns: const [
+                        DataColumn(label: Text('Joint', style: _colStyle)),
+                        DataColumn(label: Text('Type', style: _colStyle)),
+                        DataColumn(label: Text('Size', style: _colStyle)),
+                        DataColumn(label: Text('NDT', style: _colStyle)),
+                        DataColumn(label: Text('Extent', style: _colStyle)),
+                        DataColumn(label: Text('Remarks', style: _colStyle)),
+                      ],
+                      rows: planning.jointDetails.map((j) {
+                        return DataRow(cells: [
+                          DataCell(Text(j.jointNo,
+                              style: const TextStyle(
+                                  fontWeight: FontWeight.w600))),
+                          DataCell(Text(j.jointTypeLabel)),
+                          DataCell(Text(j.size)),
+                          DataCell(Text(j.ndtMethodLabel)),
+                          DataCell(Text(j.extent)),
+                          DataCell(Text(j.remarks)),
+                        ]);
+                      }).toList(),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          const SizedBox(height: 16),
+
           // Status header
           Card(
             child: Padding(
@@ -234,6 +368,9 @@ class _DetailContent extends StatelessWidget {
         return Colors.orange;
     }
   }
+
+  static const _colStyle = TextStyle(
+      fontWeight: FontWeight.bold, fontSize: 11, color: Color(0xFF1A56DB));
 
   Color _deployColor() {
     switch (planning.teamDeployStatus) {
