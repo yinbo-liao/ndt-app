@@ -13,9 +13,10 @@ void main() async {
   await Supabase.initialize(
     url: SupabaseConfig.url,
     anonKey: SupabaseConfig.anonKey,
-    realtimeClientOptions: const RealtimeClientOptions(
-      logLevel: RealtimeLogLevel.info,
-    ),
+    // Note: realtimeClientOptions intentionally omitted — the app does not
+    // use Supabase Realtime features, and the Realtime WebSocket connection
+    // causes built_value deserialization errors on Flutter Web (dwds injected
+    // client: _JsonMap is not a subtype of List<Object?>).
     authOptions: const FlutterAuthClientOptions(
       authFlowType: AuthFlowType.pkce,
     ),
