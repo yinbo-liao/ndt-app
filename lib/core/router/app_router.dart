@@ -22,6 +22,7 @@ import '../../features/ndt_planning/planning_form_page.dart';
 import '../../features/deployments/deployment_list_page.dart';
 import '../../features/deployments/deployment_form_page.dart';
 import '../../features/deployments/deployment_detail_page.dart';
+import '../../features/deployments/rfi_task_list_page.dart';
 import '../../features/summaries/daily_summary_page.dart';
 import '../../features/summaries/company_summary_page.dart';
 import '../../features/summaries/project_summary_page.dart';
@@ -227,6 +228,11 @@ final appRouterProvider = Provider<GoRouter>((ref) {
             name: 'deployments',
             builder: (context, state) => const DeploymentListPage(),
             routes: [
+              GoRoute(
+                path: 'rfi-tasks',
+                name: 'rfi-tasks',
+                builder: (context, state) => const RfiTaskListPage(),
+              ),
               GoRoute(
                 path: 'create',
                 name: 'deployment-create',

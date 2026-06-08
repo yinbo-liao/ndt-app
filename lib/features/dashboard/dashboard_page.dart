@@ -216,7 +216,7 @@ class _DashboardPageState extends ConsumerState<DashboardPage> {
       _TableInfo('Projects', Icons.apartment, '/projects', 'projects', createRoute: '/projects/create'),
       _TableInfo('Contractor Register', Icons.verified_user, '/professional-register', 'ndt_contractor_register', createRoute: '/professional-register/create'),
       _TableInfo('NDT Planning (RFI)', Icons.assignment_turned_in, '/planning', 'project_ndt_planning', createRoute: '/planning/create'),
-      _TableInfo('Deployments', Icons.engineering, '/deployments', 'ndt_team_deployments', createRoute: '/deployments/create'),
+      _TableInfo('RFI Tasks', Icons.engineering, '/deployments/rfi-tasks', 'project_ndt_planning', createRoute: '/planning/create'),
       _TableInfo('Professional Register', Icons.person_search, '/professionals', 'ndt_professional_register', createRoute: '/professionals/create'),
       _TableInfo('Team Assignments', Icons.assignment_ind, '/assignments', 'ndt_team_assignments', createRoute: '/assignments/create'),
       _TableInfo('Professional Assignments', Icons.link, '/professional-assignments', 'ndt_professional_assignments'),
