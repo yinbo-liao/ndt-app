@@ -80,6 +80,9 @@ class _DashboardPageState extends ConsumerState<DashboardPage> {
       appBar: AppBar(
         title: const Text('NDT Management'),
         actions: [
+          // ── Notification bell ──
+          _NotificationBell(),
+          const SizedBox(width: 4),
           // ── User status pill ──
           Padding(
             padding: const EdgeInsets.only(right: 4),
@@ -206,7 +209,32 @@ class _DashboardPageState extends ConsumerState<DashboardPage> {
           spacing: 10, runSpacing: 10,
           children: _tableCards(context),
         ),
+        const SizedBox(height: 20),
+        Text('Admin Tools',
+            style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                color: Colors.grey[600], fontWeight: FontWeight.w600)),
+        const SizedBox(height: 8),
+        Wrap(
+          spacing: 8, runSpacing: 6,
+          children: [
+            _adminToolChip(Icons.assessment, 'Reports Hub', '/reports'),
+            _adminToolChip(Icons.history, 'Audit Logs', '/audit-logs'),
+            _adminToolChip(Icons.people, 'Users', '/users'),
+            _adminToolChip(Icons.notifications, 'Notifications', '/notifications'),
+            _adminToolChip(Icons.person, 'My Assignments', '/my-assignments'),
+          ],
+        ),
       ],
+    );
+  }
+
+  Widget _adminToolChip(IconData icon, String label, String route) {
+    return ActionChip(
+      avatar: Icon(icon, size: 16, color: const Color(0xFF1A56DB)),
+      label: Text(label, style: const TextStyle(fontSize: 12)),
+      onPressed: () => GoRouter.of(context).go(route),
+      visualDensity: VisualDensity.compact,
+      side: const BorderSide(color: Color(0xFFE5E7EB)),
     );
   }
 
@@ -216,22 +244,16 @@ class _DashboardPageState extends ConsumerState<DashboardPage> {
       _TableInfo('Projects', Icons.apartment, '/projects', 'projects', createRoute: '/projects/create'),
       _TableInfo('Contractor Register', Icons.verified_user, '/professional-register', 'ndt_contractor_register', createRoute: '/professional-register/create'),
       _TableInfo('NDT Planning (RFI)', Icons.assignment_turned_in, '/planning', 'project_ndt_planning', createRoute: '/planning/create'),
-      _TableInfo('RFI Tasks', Icons.engineering, '/deployments/rfi-tasks', 'project_ndt_planning', createRoute: '/planning/create'),
+      _TableInfo('Deployments', Icons.engineering, '/deployments', 'ndt_team_deployments', createRoute: '/deployments/create'),
       _TableInfo('Professional Register', Icons.person_search, '/professionals', 'ndt_professional_register', createRoute: '/professionals/create'),
       _TableInfo('Team Assignments', Icons.assignment_ind, '/assignments', 'ndt_team_assignments', createRoute: '/assignments/create'),
-      _TableInfo('Professional Assignments', Icons.link, '/professional-assignments', 'ndt_professional_assignments'),
-      _TableInfo('Reports Hub', Icons.assessment, '/reports', 'reports'),
-      _TableInfo('Audit Logs', Icons.history, '/audit-logs', 'audit_logs'),
-      _TableInfo('Notifications', Icons.notifications, '/notifications', 'notifications'),
-      _TableInfo('Users', Icons.people, '/users', 'users', createRoute: '/users/create'),
-      _TableInfo('My Assignments', Icons.person, '/my-assignments', 'ndt_team_assignments'),
+      _TableInfo('Professional Assignments', Icons.link, '/professional-assignments', 'ndt_professional_assignments', createRoute: '/professional-assignments/create'),
     ];
     return tables.map((t) => _tableCard(context, t)).toList();
   }
 
   Widget _tableCard(BuildContext context, _TableInfo table) {
     final width = (MediaQuery.of(context).size.width - 34) / 2;
-    final isReports = table.route == '/reports';
     final hasCreate = table.createRoute != null;
 
     return SizedBox(
@@ -258,66 +280,39 @@ class _DashboardPageState extends ConsumerState<DashboardPage> {
               const SizedBox(height: 2),
               Text(table.tableName, style: TextStyle(fontSize: 10, color: Colors.grey[400])),
               const SizedBox(height: 8),
-              if (isReports)
-                _reportsMenuButton(context)
-              else
-                Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    OutlinedButton.icon(
-                      onPressed: () => GoRouter.of(context).go(table.route),
-                      icon: const Icon(Icons.visibility, size: 14),
-                      label: const Text('View', style: TextStyle(fontSize: 11)),
-                      style: OutlinedButton.styleFrom(
+              Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  OutlinedButton.icon(
+                    onPressed: () => GoRouter.of(context).go(table.route),
+                    icon: const Icon(Icons.visibility, size: 14),
+                    label: const Text('View', style: TextStyle(fontSize: 11)),
+                    style: OutlinedButton.styleFrom(
+                      minimumSize: const Size(0, 30),
+                      padding: const EdgeInsets.symmetric(horizontal: 8),
+                      side: const BorderSide(color: Color(0xFF1A56DB)),
+                      foregroundColor: const Color(0xFF1A56DB),
+                    ),
+                  ),
+                  if (hasCreate) ...[
+                    const SizedBox(width: 5),
+                    FilledButton.icon(
+                      onPressed: () => GoRouter.of(context).go(table.createRoute!),
+                      icon: const Icon(Icons.add, size: 14),
+                      label: const Text('Add', style: TextStyle(fontSize: 11)),
+                      style: FilledButton.styleFrom(
                         minimumSize: const Size(0, 30),
                         padding: const EdgeInsets.symmetric(horizontal: 8),
-                        side: const BorderSide(color: Color(0xFF1A56DB)),
-                        foregroundColor: const Color(0xFF1A56DB),
+                        backgroundColor: const Color(0xFF1A56DB),
                       ),
                     ),
-                    if (hasCreate) ...[
-                      const SizedBox(width: 5),
-                      FilledButton.icon(
-                        onPressed: () => GoRouter.of(context).go(table.createRoute!),
-                        icon: const Icon(Icons.add, size: 14),
-                        label: const Text('Add', style: TextStyle(fontSize: 11)),
-                        style: FilledButton.styleFrom(
-                          minimumSize: const Size(0, 30),
-                          padding: const EdgeInsets.symmetric(horizontal: 8),
-                          backgroundColor: const Color(0xFF1A56DB),
-                        ),
-                      ),
-                    ],
                   ],
-                ),
+                ],
+              ),
             ],
           ),
         ),
       ),
-    );
-  }
-
-  Widget _reportsMenuButton(BuildContext context) {
-    return PopupMenuButton<String>(
-      onSelected: (route) => GoRouter.of(context).go(route),
-      offset: const Offset(0, 32),
-      child: FilledButton.icon(
-        onPressed: () {}, // PopupMenuButton handles the tap
-        icon: const Icon(Icons.bar_chart, size: 14),
-        label: const Text('Open', style: TextStyle(fontSize: 11)),
-        style: FilledButton.styleFrom(
-          minimumSize: const Size(0, 30),
-          padding: const EdgeInsets.symmetric(horizontal: 12),
-          backgroundColor: const Color(0xFF1A56DB),
-        ),
-      ),
-      itemBuilder: (_) => const [
-        PopupMenuItem(value: '/reports/daily', child: ListTile(leading: Icon(Icons.calendar_today), title: Text('Daily Summary'), dense: true, contentPadding: EdgeInsets.zero)),
-        PopupMenuItem(value: '/reports/company', child: ListTile(leading: Icon(Icons.business), title: Text('Company Summary'), dense: true, contentPadding: EdgeInsets.zero)),
-        PopupMenuItem(value: '/reports/project-status', child: ListTile(leading: Icon(Icons.assessment), title: Text('Project Status'), dense: true, contentPadding: EdgeInsets.zero)),
-        PopupMenuItem(value: '/reports/charts', child: ListTile(leading: Icon(Icons.trending_up), title: Text('Charts & Trends'), dense: true, contentPadding: EdgeInsets.zero)),
-        PopupMenuItem(value: '/reports/professional', child: ListTile(leading: Icon(Icons.person), title: Text('Professional Summary'), dense: true, contentPadding: EdgeInsets.zero)),
-      ],
     );
   }
 
@@ -651,11 +646,57 @@ class _DashboardPageState extends ConsumerState<DashboardPage> {
   }
 }
 
+/// Notification bell icon in the AppBar with unread-count badge.
+class _NotificationBell extends ConsumerWidget {
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final notificationsAsync = ref.watch(allNotificationsProvider);
+    final unreadCount = notificationsAsync.when(
+      data: (list) => list.where((n) => !n.read).length,
+      loading: () => 0,
+      error: (_, __) => 0,
+    );
+
+    return Stack(
+      children: [
+        IconButton(
+          icon: const Icon(Icons.notifications_outlined),
+          tooltip: 'Notifications',
+          onPressed: () => GoRouter.of(context).go('/notifications'),
+        ),
+        if (unreadCount > 0)
+          Positioned(
+            right: 6,
+            top: 6,
+            child: Container(
+              padding: const EdgeInsets.all(4),
+              decoration: const BoxDecoration(
+                color: Colors.red,
+                shape: BoxShape.circle,
+              ),
+              constraints: const BoxConstraints(minWidth: 18, minHeight: 18),
+              child: Text(
+                unreadCount > 99 ? '99+' : '$unreadCount',
+                style: const TextStyle(
+                  color: Colors.white,
+                  fontSize: 9,
+                  fontWeight: FontWeight.bold,
+                ),
+                textAlign: TextAlign.center,
+              ),
+            ),
+          ),
+      ],
+    );
+  }
+}
+
 class _AdminStatsRow extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final usersAsync = ref.watch(usersProvider);
     final projectsAsync = ref.watch(projectsProvider);
+    final rfiAsync = ref.watch(rfiCountProvider);
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16),
       child: Row(
@@ -664,7 +705,7 @@ class _AdminStatsRow extends ConsumerWidget {
           const SizedBox(width: 8),
           Expanded(child: _miniStatCard(Icons.business, 'Projects', projectsAsync.when(data: (p) => '${p.length}', loading: () => '...', error: (_, __) => '--'), Colors.green)),
           const SizedBox(width: 8),
-          Expanded(child: _miniStatCard(Icons.assignment_turned_in, 'RFIs', '', Colors.orange)),
+          Expanded(child: _miniStatCard(Icons.assignment_turned_in, 'RFIs', rfiAsync.when(data: (c) => '$c', loading: () => '...', error: (_, __) => '--'), Colors.orange)),
         ],
       ),
     );

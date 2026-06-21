@@ -71,3 +71,19 @@ final planningDetailProvider = FutureProvider.autoDispose
   final repository = ref.watch(planningRepositoryProvider);
   return repository.getById(planningId);
 });
+
+/// Fetch total RFI count for summary metrics.
+final rfiCountProvider = FutureProvider.autoDispose<int>((ref) async {
+  final repository = ref.watch(planningRepositoryProvider);
+  final isAdmin = ref.watch(isAdminProvider);
+
+  if (isAdmin) {
+    final items = await repository.getAll();
+    return items.length;
+  }
+
+  final companyId = ref.watch(currentUserCompanyIdProvider);
+  if (companyId == null) return 0;
+  final items = await repository.getByCompany(companyId);
+  return items.length;
+});

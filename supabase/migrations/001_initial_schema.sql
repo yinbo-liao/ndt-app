@@ -6,8 +6,14 @@
 -- 1. CUSTOM ENUM TYPE
 -- ---------------------------------------------------------------------------
 CREATE TYPE shift_type AS ENUM ('day', 'night');
-
-
+CREATE TYPE ndt_status AS ENUM ('active', 'inactive', 'pending');
+CREATE TYPE user_role AS ENUM ('admin', 'ndt_company', 'ndt_team','QA');
+CREATE TYPE type_of_ndt AS ENUM ('UT', 'MT', 'PT', 'RT', 'ET');
+CREATE TYPE validation_status AS ENUM ('valid', 'expired', 'pending', 'revoked');
+CREATE TYPE testing_status AS ENUM ('planned', 'in_progress', 'completed', 'rejected', 'on_hold', 'not_started');
+CREATE TYPE priority_level AS ENUM ('low', 'normal', 'high', 'urgent');
+CREATE TYPE assigned_role AS ENUM ('supervisor', 'technician', 'inspector', 'helper');
+CREATE TYPE assignment_status AS ENUM ('active', 'completed','on_hold', 'removed');
 -- 2. CORE TABLES
 -- =============================================================================
 
@@ -18,6 +24,11 @@ CREATE TABLE ndt_companies (
     registration_no TEXT UNIQUE,
     contact_email TEXT,
     contact_phone TEXT,
+    type_of_ndt_services TEXT[],
+    type_of_certificates TEXT[],
+    certification_bodies TEXT[],
+    cetification_issued_date DATE,
+    certification_expire_date DATE,
     active BOOLEAN DEFAULT true,
     created_at TIMESTAMPTZ DEFAULT now(),
     updated_at TIMESTAMPTZ DEFAULT now()
@@ -47,10 +58,12 @@ CREATE INDEX idx_users_active ON users(active);
 CREATE TABLE ndt_contractor_register (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     ndt_company_id UUID NOT NULL REFERENCES ndt_companies(id),
+    technician_name TEXT NOT NULL,
+    technician_id_last4digit TEXT NOT NULL,
     type_of_ndt TEXT NOT NULL,
     type_of_ndt_certificate TEXT NOT NULL,
     certificate_no TEXT NOT NULL,
-    certificate_type TEXT,
+    certificate_party TEXT,
     issue_date DATE NOT NULL,
     expire_date DATE NOT NULL,
     validation_status TEXT NOT NULL DEFAULT 'pending'

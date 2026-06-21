@@ -1,0 +1,320 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>NDT-App Home (Mobile Mockup)</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <style>
+    :root {
+      --primary: #2563eb;
+      --bg: #f3f4f6;
+      --card-bg: #ffffff;
+      --text-main: #111827;
+      --text-muted: #6b7280;
+      --border: #e5e7eb;
+    }
+    body {
+      margin: 0;
+      padding: 0;
+      background: var(--bg);
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      color: var(--text-main);
+      display: flex;
+      justify-content: center;
+    }
+    .screen {
+      width: 393px; /* iPhone 14 Pro width */
+      min-height: 100vh;
+      background: var(--bg);
+      display: flex;
+      flex-direction: column;
+    }
+    .appbar {
+      background: #ffffff;
+      padding: 12px 16px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+    }
+    .app-title {
+      font-weight: 700;
+      font-size: 16px;
+    }
+    .user-info {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .avatar {
+      width: 28px;
+      height: 28px;
+      border-radius: 999px;
+      background: var(--primary);
+      color: #fff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 14px;
+      font-weight: 600;
+    }
+    .user-text {
+      display: flex;
+      flex-direction: column;
+    }
+    .user-email {
+      font-size: 11px;
+    }
+    .user-role {
+      font-size: 10px;
+      color: var(--primary);
+      font-weight: 600;
+    }
+    .content {
+      flex: 1;
+      padding: 12px 16px 60px;
+      overflow-y: auto;
+    }
+    .section-title {
+      font-size: 14px;
+      font-weight: 600;
+      margin-bottom: 8px;
+    }
+    .metrics-row {
+      display: flex;
+      gap: 10px;
+      overflow-x: auto;
+      padding-bottom: 4px;
+    }
+    .metric-card {
+      min-width: 120px;
+      background: var(--card-bg);
+      border-radius: 12px;
+      padding: 10px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+      display: flex;
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 4px;
+    }
+    .metric-icon {
+      font-size: 18px;
+    }
+    .metric-title {
+      font-size: 12px;
+      font-weight: 600;
+    }
+    .metric-count {
+      font-size: 18px;
+      font-weight: 700;
+    }
+    .grid {
+      margin-top: 16px;
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 10px;
+    }
+    .table-card {
+      background: var(--card-bg);
+      border-radius: 12px;
+      padding: 10px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      min-height: 120px;
+    }
+    .table-icon {
+      font-size: 18px;
+      color: var(--primary);
+    }
+    .table-title {
+      font-size: 13px;
+      font-weight: 600;
+    }
+    .table-subtitle {
+      font-size: 11px;
+      color: var(--text-muted);
+    }
+    .table-actions {
+      margin-top: auto;
+      display: flex;
+      justify-content: space-between;
+      gap: 6px;
+    }
+    .btn {
+      flex: 1;
+      font-size: 11px;
+      padding: 6px 0;
+      border-radius: 999px;
+      border: 1px solid var(--border);
+      background: #ffffff;
+      cursor: default;
+      text-align: center;
+    }
+    .btn-primary {
+      border-color: var(--primary);
+      background: var(--primary);
+      color: #ffffff;
+    }
+    .bottom-nav {
+      position: fixed;
+      bottom: 0;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 393px;
+      background: #ffffff;
+      border-top: 1px solid var(--border);
+      display: flex;
+      justify-content: space-around;
+      padding: 6px 0;
+    }
+    .nav-item {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      font-size: 11px;
+      color: var(--text-muted);
+    }
+    .nav-item.active {
+      color: var(--primary);
+      font-weight: 600;
+    }
+    .nav-icon {
+      font-size: 18px;
+      margin-bottom: 2px;
+    }
+  </style>
+</head>
+<body>
+  <div class="screen">
+    <!-- AppBar -->
+    <div class="appbar">
+      <div class="app-title">NDT Management</div>
+      <div class="user-info">
+        <div class="avatar">A</div>
+        <div class="user-text">
+          <div class="user-email">admin@ndt-app.com</div>
+          <div class="user-role">Admin</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Content -->
+    <div class="content">
+      <!-- Summary Metrics -->
+      <div class="section-title">Summary</div>
+      <div class="metrics-row">
+        <div class="metric-card">
+          <div class="metric-icon">👥</div>
+          <div class="metric-title">Users</div>
+          <div class="metric-count">3</div>
+        </div>
+        <div class="metric-card">
+          <div class="metric-icon">📁</div>
+          <div class="metric-title">Projects</div>
+          <div class="metric-count">3</div>
+        </div>
+        <div class="metric-card">
+          <div class="metric-icon">📋</div>
+          <div class="metric-title">RFIs</div>
+          <div class="metric-count">12</div>
+        </div>
+      </div>
+
+      <!-- Database Grid -->
+      <div class="section-title" style="margin-top:16px;">Tables</div>
+      <div class="grid">
+        <div class="table-card">
+          <div class="table-icon">🏢</div>
+          <div class="table-title">NDT Companies</div>
+          <div class="table-subtitle">ndt_companies</div>
+          <div class="table-actions">
+            <div class="btn">View</div>
+            <div class="btn btn-primary">Add</div>
+          </div>
+        </div>
+        <div class="table-card">
+          <div class="table-icon">📁</div>
+          <div class="table-title">Projects</div>
+          <div class="table-subtitle">projects</div>
+          <div class="table-actions">
+            <div class="btn">View</div>
+            <div class="btn btn-primary">Add</div>
+          </div>
+        </div>
+        <div class="table-card">
+          <div class="table-icon">✅</div>
+          <div class="table-title">Contractor Register</div>
+          <div class="table-subtitle">ndt_contractor_register</div>
+          <div class="table-actions">
+            <div class="btn">View</div>
+            <div class="btn btn-primary">Add</div>
+          </div>
+        </div>
+        <div class="table-card">
+          <div class="table-icon">🗂</div>
+          <div class="table-title">NDT Planning (RFI)</div>
+          <div class="table-subtitle">project_ndt_planning</div>
+          <div class="table-actions">
+            <div class="btn">View</div>
+            <div class="btn btn-primary">Add</div>
+          </div>
+        </div>
+        <div class="table-card">
+          <div class="table-icon">🚀</div>
+          <div class="table-title">Deployments</div>
+          <div class="table-subtitle">ndt_team_deployments</div>
+          <div class="table-actions">
+            <div class="btn">View</div>
+            <div class="btn btn-primary">Add</div>
+          </div>
+        </div>
+        <div class="table-card">
+          <div class="table-icon">👤</div>
+          <div class="table-title">Professional Register</div>
+          <div class="table-subtitle">ndt_professional_register</div>
+          <div class="table-actions">
+            <div class="btn">View</div>
+            <div class="btn btn-primary">Add</div>
+          </div>
+        </div>
+        <div class="table-card">
+          <div class="table-icon">🧩</div>
+          <div class="table-title">Team Assignments</div>
+          <div class="table-subtitle">ndt_team_assignments</div>
+          <div class="table-actions">
+            <div class="btn">View</div>
+            <div class="btn btn-primary">Add</div>
+          </div>
+        </div>
+        <div class="table-card">
+          <div class="table-icon">🔗</div>
+          <div class="table-title">Professional Assignments</div>
+          <div class="table-subtitle">ndt_professional_assignments</div>
+          <div class="table-actions">
+            <div class="btn">View</div>
+            <div class="btn btn-primary">Add</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Bottom Navigation -->
+    <div class="bottom-nav">
+      <div class="nav-item active">
+        <div class="nav-icon">📋</div>
+        <div>Tables</div>
+      </div>
+      <div class="nav-item">
+        <div class="nav-icon">🏠</div>
+        <div>Home</div>
+      </div>
+      <div class="nav-item">
+        <div class="nav-icon">📊</div>
+        <div>Reports</div>
+      </div>
+    </div>
+  </div>
+</body>
+</html>

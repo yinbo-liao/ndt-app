@@ -214,6 +214,58 @@ void main() {
     });
   });
 
+  group('RFI Count Provider', () {
+    test('rfiCountProvider — admin uses getAll count', () async {
+      final mockRepo = MockPlanningRepository();
+      when(() => mockRepo.getAll()).thenAnswer((_) async => [
+            _samplePlanning,
+            _samplePlanning.copyWith(id: 'n2'),
+          ]);
+
+      final container = createContainer(
+        isAdmin: true,
+        mockPlanningRepo: mockRepo,
+      );
+
+      final result = await container.read(rfiCountProvider.future);
+      expect(result, 2);
+      verify(() => mockRepo.getAll()).called(1);
+      verifyNever(() => mockRepo.getByCompany(any()));
+    });
+
+    test('rfiCountProvider — company user uses getByCompany count', () async {
+      final mockRepo = MockPlanningRepository();
+      when(() => mockRepo.getByCompany('comp-1'))
+          .thenAnswer((_) async => [_samplePlanning]);
+
+      final container = createContainer(
+        isAdmin: false,
+        companyId: 'comp-1',
+        mockPlanningRepo: mockRepo,
+      );
+
+      final result = await container.read(rfiCountProvider.future);
+      expect(result, 1);
+      verify(() => mockRepo.getByCompany('comp-1')).called(1);
+      verifyNever(() => mockRepo.getAll());
+    });
+
+    test('rfiCountProvider — returns 0 when companyId is null', () async {
+      final mockRepo = MockPlanningRepository();
+
+      final container = createContainer(
+        isAdmin: false,
+        companyId: null,
+        mockPlanningRepo: mockRepo,
+      );
+
+      final result = await container.read(rfiCountProvider.future);
+      expect(result, 0);
+      verifyNever(() => mockRepo.getAll());
+      verifyNever(() => mockRepo.getByCompany(any()));
+    });
+  });
+
   group('Professional Controller Providers', () {
     test('professionalsProvider — admin uses getAll', () async {
       final mockRepo = MockProfessionalRepository();

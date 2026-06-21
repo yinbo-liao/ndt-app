@@ -47,6 +47,7 @@ import '../../features/companies/company_detail_page.dart';
 import '../../features/team_management/my_assignments_page.dart';
 import '../../features/team_management/team_assignment_page.dart';
 import '../../features/team_management/professional_assignment_list_page.dart';
+import '../../features/team_management/professional_assignment_form_page.dart';
 
 /// Provides the configured [GoRouter] instance.
 ///
@@ -423,6 +424,14 @@ final appRouterProvider = Provider<GoRouter>((ref) {
             name: 'professional-assignments',
             builder: (context, state) =>
                 const ProfessionalAssignmentListPage(),
+            routes: [
+              GoRoute(
+                path: 'create',
+                name: 'professional-assignment-create',
+                builder: (context, state) =>
+                    const ProfessionalAssignmentFormPage(),
+              ),
+            ],
           ),
 
           // ── Notifications ─────────────────────────────────────
